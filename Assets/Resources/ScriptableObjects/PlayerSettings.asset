@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: PlayerSettings
   m_EditorClassIdentifier: 
   MaxHealth: 100
-  MoveSpeed: 5
-  RotationSpeed: 180
+  MoveSpeed: 2
+  RotationSpeed: 20
