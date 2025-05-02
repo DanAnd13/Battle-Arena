@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MaxHealth: 100
   MoveSpeed: 2
-  RotationSpeed: 20
+  RotationSpeed: 10

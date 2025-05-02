@@ -9,17 +9,23 @@ using UnityEngine.SceneManagement;
 public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
 {
     [SerializeField] private NetworkRunner runnerPrefab;
-    public GameObject playerPrefab;
+    
+    private GameObject _playerPrefab;
+    private GameObject _weapon;
+    private NetworkRunner _runner;
 
-    private NetworkRunner runner;
-
+    private void Awake()
+    {
+        _playerPrefab = Resources.Load<GameObject>("Player");
+        _weapon = Resources.Load<GameObject>("FastWeapon");
+    }
     void Start()
     {
-        runner = Instantiate(runnerPrefab);
-        runner.ProvideInput = true;
-        runner.AddCallbacks(this);
+        _runner = Instantiate(runnerPrefab);
+        _runner.ProvideInput = true;
+        _runner.AddCallbacks(this);
 
-        runner.StartGame(new StartGameArgs()
+        _runner.StartGame(new StartGameArgs()
         {
             GameMode = GameMode.AutoHostOrClient,
             SessionName = "TestSession",
@@ -27,6 +33,25 @@ public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
             SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
         });
     }
+
+    public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
+    {
+        if (player == runner.LocalPlayer)
+        {
+            Vector3 spawnPosition = new Vector3(UnityEngine.Random.Range(-5f, 5f), 1f, UnityEngine.Random.Range(-5f, 5f));
+            NetworkObject playerInstance = runner.Spawn(_playerPrefab, spawnPosition, Quaternion.identity, player);
+
+            Transform cameraPosition = playerInstance.transform.GetChild(0);
+
+            NetworkObject weaponInstance = runner.Spawn(_weapon, Vector3.zero, Quaternion.identity);
+
+            weaponInstance.transform.SetParent(cameraPosition, worldPositionStays: false);
+
+            weaponInstance.transform.localPosition = new Vector3(0f, -0.8f, 1.6f);
+            weaponInstance.transform.localRotation = Quaternion.identity;
+        }
+    }
+
     public void OnConnectedToServer(NetworkRunner runner)
     {
     }
@@ -65,17 +90,6 @@ public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
     {
-    }
-
-    public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
-    {
-        if (player == runner.LocalPlayer)
-        {
-            Debug.Log("Local player joined, spawning character...");
-
-            Vector3 spawnPosition = new Vector3(UnityEngine.Random.Range(-5f, 5f), 1f, UnityEngine.Random.Range(-5f, 5f));
-            runner.Spawn(playerPrefab, spawnPosition, Quaternion.identity, player);
-        }
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)

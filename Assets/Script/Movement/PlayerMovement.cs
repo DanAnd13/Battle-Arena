@@ -43,7 +43,7 @@ public class PlayerMovement : NetworkBehaviour
 
         // Зміна цільового кута
         targetPitch -= lastMouseDelta.y * PlayerSettings.RotationSpeed;
-        targetPitch = Mathf.Clamp(targetPitch, -80f, 80f);
+        targetPitch = Mathf.Clamp(targetPitch, -45, 45);
         targetYaw += lastMouseDelta.x * PlayerSettings.RotationSpeed;
 
         // Плавне обертання камери
