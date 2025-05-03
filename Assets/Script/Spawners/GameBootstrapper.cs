@@ -3,13 +3,18 @@ using Fusion.Sockets;
 using System;
 using UnityEngine;
 using BattleArena.Parameters;
+using BattleArena.Movement;
 using System.Collections.Generic;
+using UnityEngine.Pool;
+using System.Collections;
 
 public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
-{  
-    [SerializeField] private GameObject bulletPrefab; // Префаб кулі
-    [SerializeField] private NetworkRunner runnerPrefab;
+{
+    public ObjectPool BulletPool;
+    public NetworkRunner RunnerPrefab;
+    public NetworkObject BulletPrefab;
 
+    private int _bulletsToPreload = 30;
     private GameObject _playerPrefab;
     private GameObject _weapon;
     private NetworkRunner _runner;
@@ -17,12 +22,12 @@ public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
     private void Awake()
     {
         _playerPrefab = Resources.Load<GameObject>("Player");
-        _weapon = Resources.Load<GameObject>("FastWeapon");
+        _weapon = Resources.Load<GameObject>("PowerWeapon");
     }
 
     private void Start()
     {
-        _runner = Instantiate(runnerPrefab);
+        _runner = Instantiate(RunnerPrefab);
         _runner.ProvideInput = true;
         _runner.AddCallbacks(this);
 
@@ -33,6 +38,33 @@ public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
             Scene = new NetworkSceneInfo(),
             SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
         });
+        StartCoroutine(WaitForRunnerAndPreload());
+    }
+
+    private IEnumerator WaitForRunnerAndPreload()
+    {
+        while (_runner.IsRunning == false)
+            yield return null;
+
+        if (_runner.IsServer) // тільки сервер спавнить кулі
+        {
+            PreloadBullets();
+        }
+    }
+
+    private void PreloadBullets()
+    {
+        for (int i = 0; i < _bulletsToPreload; i++)
+        {
+            NetworkObject bullet = _runner.Spawn(BulletPrefab, Vector3.zero, Quaternion.identity, inputAuthority: null, onBeforeSpawned: (runner, obj) =>
+            {
+                obj.transform.position = Vector3.down * 100f; // тимчасово сховати
+            });
+            bullet.GetComponent<NetworkObject>().gameObject.GetComponent<MeshRenderer>().enabled = false;
+            bullet.GetComponent<Collider>().enabled = false;
+            bullet.GetComponent<BulletController>().enabled = false;
+            BulletPool.AddBullet(bullet);       // додаємо до пулу
+        }
     }
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
@@ -44,6 +76,12 @@ public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
 
             Transform cameraPosition = playerInstance.transform.GetChild(0);
             NetworkObject weaponInstance = runner.Spawn(_weapon, Vector3.zero, Quaternion.identity);
+
+            var weaponController = weaponInstance.GetComponent<WeaponController>();
+            if (weaponController != null)
+            {
+                weaponController.SetObjectPool(BulletPool);
+            }
 
             weaponInstance.transform.SetParent(cameraPosition, worldPositionStays: false);
             weaponInstance.transform.localPosition = new Vector3(0f, -0.8f, 1.6f);

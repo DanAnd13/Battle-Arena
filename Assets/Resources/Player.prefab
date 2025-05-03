@@ -181,7 +181,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PlayerSettings: {fileID: 11400000, guid: 5bdb0ecbca01e074386afd0f1076b30f, type: 2}
-  cameraPivot: {fileID: 605853318121472453}
+  CameraPosition: {fileID: 605853318121472453}
 --- !u!114 &7286742476960841597
 MonoBehaviour:
   m_ObjectHideFlags: 0

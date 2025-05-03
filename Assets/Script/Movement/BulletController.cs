@@ -2,30 +2,57 @@ using Fusion;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using BattleArena.Parameters;
 
-public class BulletController : NetworkBehaviour
+namespace BattleArena.Movement
 {
-    private float speed;
-    private float lifeTime;
-    private float timer;
-
-    public void Init(Vector3 direction, float speed, float lifeTime)
+    public class BulletController : NetworkBehaviour
     {
-        this.speed = speed;
-        this.lifeTime = lifeTime;
-        timer = 0f;
-        GetComponent<Rigidbody>().velocity = direction * speed;
-    }
+        private float speed;
+        private float lifeTime;
+        private float timer;
+        private Vector3 direction;
+        private ObjectPool objectPool; // посилання на пул
 
-    private void Update()
-    {
-        if (Object.HasStateAuthority)
+        public void Init(Vector3 direction, float speed, float lifeTime, ObjectPool pool)
         {
-            timer += Time.deltaTime;
-            if (timer >= lifeTime)
+            this.direction = direction.normalized;
+            this.speed = speed;
+            this.lifeTime = lifeTime;
+            this.objectPool = pool;
+            timer = 0f;
+
+            // Увімкнути компоненти
+            GetComponent<MeshRenderer>().enabled = true;
+            GetComponent<Collider>().enabled = true;
+            enabled = true; // увімкнути цей скрипт
+        }
+
+        private void Update()
+        {
+            if (Object.HasStateAuthority)
             {
-                Runner.Despawn(Object); // або віддати назад у пул
+                timer += Time.deltaTime;
+                if (timer >= lifeTime)
+                {
+                    ReturnToPool();
+                    return;
+                }
+
+                transform.Translate(direction * speed * Time.deltaTime, Space.World);
             }
+        }
+
+        private void ReturnToPool()
+        {
+            // Вимкнути всі компоненти
+            GetComponent<MeshRenderer>().enabled = false;
+            GetComponent<Collider>().enabled = false;
+            enabled = false;
+
+            transform.position = Vector3.down * 100f;
+
+            objectPool?.ReturnBullet(GetComponent<NetworkObject>());
         }
     }
 }

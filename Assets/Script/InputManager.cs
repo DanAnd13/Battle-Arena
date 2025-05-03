@@ -10,6 +10,7 @@ namespace BattleArena.InputSynchronize
     public class InputManager : MonoBehaviour, INetworkRunnerCallbacks
     {
         public NetworkInputData NetworkInputData;
+
         public void Update()
         {
             Vector2 move = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));

@@ -1,54 +1,45 @@
 using BattleArena.Parameters;
 using Fusion;
 using UnityEngine;
+using UnityEngine.Pool;
 
-public class WeaponController : NetworkBehaviour
+namespace BattleArena.Movement
 {
-    public WeaponScriptableObject bulletSettings; // Налаштування кулі
-    public Transform firePoint;                   // Точка вогню
-
-    private NetworkObject bulletPrefab;
-
-    private void Start()
+    public class WeaponController : NetworkBehaviour
     {
-        // Завантаження префабу кулі з Resources
-        bulletPrefab = Resources.Load<NetworkObject>("Bullet");
-    }
+        public WeaponScriptableObject BulletSettings; // Налаштування кулі
+        public Transform FirePoint;                   // Точка вогню
 
-    private void Update()
-    {
-        if (Runner == null || Runner.LocalPlayer == null) return;
+        private ObjectPool _objectPool;
 
-        if (Input.GetMouseButtonDown(0)) // Якщо натиснута ліва кнопка миші
+        private void Update()
         {
-            SpawnBullet();
+            if (Runner == null || Runner.LocalPlayer == null) return;
+
+            if (Input.GetMouseButtonDown(0)) // Якщо натиснута ліва кнопка миші
+            {
+                SpawnBullet();
+            }
         }
-    }
-
-    // Метод для спавну кулі
-    private void SpawnBullet()
-    {
-        if (bulletPrefab == null)
+        public void SetObjectPool(ObjectPool pool)
         {
-            Debug.LogError("Bullet prefab not assigned!");
-            return;
+            _objectPool = pool;
         }
 
-        // Отримуємо позицію камери або зброї для визначення місця спавну
-        Vector3 spawnPosition = firePoint.position;
-        Vector3 shootDirection = firePoint.forward;
-
-        // Спавнимо кулю
-        Runner.Spawn(bulletPrefab, spawnPosition, Quaternion.identity, Runner.LocalPlayer, (runner, obj) =>
+        // Метод для спавну кулі
+        private void SpawnBullet()
         {
-            Debug.Log("Bullet spawned!");
+            var bullet = _objectPool.GetBullet();
+            if (bullet == null) return;
 
-            // Ініціалізуємо кулю після спавну
-            var bulletController = obj.GetComponent<BulletController>();
+            bullet.transform.position = FirePoint.position;
+            bullet.transform.rotation = Quaternion.LookRotation(FirePoint.forward);
+
+            var bulletController = bullet.GetComponent<BulletController>();
             if (bulletController != null)
             {
-                bulletController.Init(shootDirection, bulletSettings.BulletSpeed, 1f); // Задаємо параметри кулі
+                bulletController.Init(FirePoint.forward, BulletSettings.BulletSpeed, 1f, _objectPool);
             }
-        });
+        }
     }
 }
