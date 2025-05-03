@@ -13,6 +13,7 @@ public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
     public ObjectPool BulletPool;
     public NetworkRunner RunnerPrefab;
     public NetworkObject BulletPrefab;
+    public Transform[] SpawnPoints;
 
     private int _bulletsToPreload = 30;
     private GameObject _playerPrefab;
@@ -71,7 +72,9 @@ public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
     {
         if (player == runner.LocalPlayer)
         {
-            Vector3 spawnPosition = new Vector3(UnityEngine.Random.Range(-5f, 5f), 1f, UnityEngine.Random.Range(-5f, 5f));
+            int randomIndex = UnityEngine.Random.Range(0, SpawnPoints.Length);
+            Vector3 spawnPosition = new Vector3(SpawnPoints[randomIndex].position.x, 
+                                    SpawnPoints[randomIndex].position.y + 0.35f, SpawnPoints[randomIndex].position.z);
             NetworkObject playerInstance = runner.Spawn(_playerPrefab, spawnPosition, Quaternion.identity, player);
 
             Transform cameraPosition = playerInstance.transform.GetChild(0);

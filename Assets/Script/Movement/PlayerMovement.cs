@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Windows;
 using BattleArena.Parameters;
 using BattleArena.InputSynchronize;
+using System;
 
 namespace BattleArena.Movement
 {
@@ -14,7 +15,6 @@ namespace BattleArena.Movement
         public Transform CameraPosition;
 
         private Vector2 _lastMouseDelta;
-        private CharacterController _controller;
         private float _currentYaw = 0f;
         private float _currentPitch = 0f;
         private float _targetYaw = 0f;
@@ -22,8 +22,6 @@ namespace BattleArena.Movement
 
         public override void Spawned()
         {
-            _controller = GetComponent<CharacterController>();
-
             if (HasInputAuthority)
             {
                 // ¬ключенн€ камери або UI дл€ локального гравц€
@@ -59,7 +57,7 @@ namespace BattleArena.Movement
             if (GetInput(out NetworkInputData input))
             {
                 Vector3 move = transform.forward * input.Movement.y + transform.right * input.Movement.x;
-                _controller.Move(move * PlayerSettings.MoveSpeed * Runner.DeltaTime);
+                transform.position += move * PlayerSettings.MoveSpeed * Runner.DeltaTime;
 
                 if (HasInputAuthority)
                     _lastMouseDelta = input.MouseDelta;
