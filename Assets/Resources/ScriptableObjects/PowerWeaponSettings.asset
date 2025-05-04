@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: PowerWeaponSettings
   m_EditorClassIdentifier: 
   DamageByShot: 25
-  ReloadTime: 2
+  ReloadTime: 0.5
   BulletSpeed: 4

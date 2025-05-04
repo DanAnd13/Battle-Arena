@@ -22,11 +22,21 @@ namespace BattleArena.InputSynchronize
 
         public void OnInput(NetworkRunner runner, NetworkInput input)
         {
-            var data = new NetworkInputData
-            {
-                Movement = NetworkInputData.Movement,
-                MouseDelta = NetworkInputData.MouseDelta,
-            };
+            var data = new NetworkInputData();
+
+            if (Input.GetKey(KeyCode.W))
+                data.Movement += Vector3.forward;
+
+            if (Input.GetKey(KeyCode.S))
+                data.Movement += Vector3.back;
+
+            if (Input.GetKey(KeyCode.A))
+                data.Movement += Vector3.left;
+
+            if (Input.GetKey(KeyCode.D))
+                data.Movement += Vector3.right;
+
+            data.buttons.Set(NetworkInputData.MOUSEBUTTON0, Input.GetMouseButton(0));
 
             input.Set(data);
         }

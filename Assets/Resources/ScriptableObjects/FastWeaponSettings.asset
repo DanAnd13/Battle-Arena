@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: FastWeaponSettings
   m_EditorClassIdentifier: 
   DamageByShot: 10
-  ReloadTime: 0.5
+  ReloadTime: 0.2
   BulletSpeed: 10

@@ -1,6 +1,4 @@
 using Fusion;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using BattleArena.Parameters;
 
@@ -9,50 +7,44 @@ namespace BattleArena.Movement
     public class BulletController : NetworkBehaviour
     {
         private float speed;
-        private float lifeTime;
         private float timer;
         private Vector3 direction;
-        private ObjectPool objectPool; // посилання на пул
+        private ObjectPool objectPool;
+        [Networked] 
+        private TickTimer lifeTime { get; set; }
 
-        public void Init(Vector3 direction, float speed, float lifeTime, ObjectPool pool)
+        public void Init(Vector3 direction, float speed, float lifeTime)
         {
             this.direction = direction.normalized;
             this.speed = speed;
-            this.lifeTime = lifeTime;
-            this.objectPool = pool;
+            this.lifeTime = TickTimer.CreateFromSeconds(Runner, lifeTime);
+            //this.objectPool = pool;
             timer = 0f;
 
-            // Увімкнути компоненти
-            GetComponent<MeshRenderer>().enabled = true;
-            GetComponent<Collider>().enabled = true;
-            enabled = true; // увімкнути цей скрипт
+            //gameObject.SetActive(true);
+            //GetComponent<SphereCollider>().enabled = true;
+            enabled = true;
         }
 
-        private void Update()
+        public override void FixedUpdateNetwork()
         {
-            if (Object.HasStateAuthority)
-            {
-                timer += Time.deltaTime;
-                if (timer >= lifeTime)
-                {
-                    ReturnToPool();
-                    return;
-                }
-
-                transform.Translate(direction * speed * Time.deltaTime, Space.World);
-            }
+            if (lifeTime.Expired(Runner))
+                //ReturnToPool();
+                Runner.Despawn(Object);
+            else
+                transform.position += direction * speed * Runner.DeltaTime;
         }
 
         private void ReturnToPool()
         {
-            // Вимкнути всі компоненти
-            GetComponent<MeshRenderer>().enabled = false;
-            GetComponent<Collider>().enabled = false;
+            GetComponent<SphereCollider>().enabled = false;
             enabled = false;
 
+            // Приховуємо об'єкт або повертаємо до початкової позиції
             transform.position = Vector3.down * 100f;
 
-            objectPool?.ReturnBullet(GetComponent<NetworkObject>());
+            //objectPool?.ReturnBullet(GetComponent<NetworkObject>());
+            //gameObject.SetActive(false);
         }
     }
 }

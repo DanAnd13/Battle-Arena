@@ -1,3 +1,4 @@
+п»їusing BattleArena.InputSynchronize;
 using BattleArena.Parameters;
 using Fusion;
 using UnityEngine;
@@ -7,39 +8,46 @@ namespace BattleArena.Movement
 {
     public class WeaponController : NetworkBehaviour
     {
-        public WeaponScriptableObject BulletSettings; // Налаштування кулі
-        public Transform FirePoint;                   // Точка вогню
+        public WeaponScriptableObject WeaponSettings;
+        public Transform Barrel;
+        public BulletController BulletPref;
 
-        private ObjectPool _objectPool;
+        [Networked] private TickTimer fireCooldown { get; set; }
+        [Networked] private NetworkObject PlayerObject { get; set; }
 
-        private void Update()
+        public override void Spawned()
         {
-            if (Runner == null || Runner.LocalPlayer == null) return;
-
-            if (Input.GetMouseButtonDown(0)) // Якщо натиснута ліва кнопка миші
+            if (PlayerObject != null)
             {
-                SpawnBullet();
+                Transform weaponPosition = PlayerObject.transform.GetChild(0); // СЏРє Сѓ СЃРїР°РІРЅРµСЂС–
+                transform.SetParent(weaponPosition, false);
+                transform.localPosition = new Vector3(0f, 0f, 1f);
+                transform.localRotation = Quaternion.identity;
             }
         }
-        public void SetObjectPool(ObjectPool pool)
+
+        public void Init(NetworkObject playerObj)
         {
-            _objectPool = pool;
+            PlayerObject = playerObj;
         }
 
-        // Метод для спавну кулі
-        private void SpawnBullet()
+        public void HandleFireInput(NetworkInputData data)
         {
-            var bullet = _objectPool.GetBullet();
-            if (bullet == null) return;
-
-            bullet.transform.position = FirePoint.position;
-            bullet.transform.rotation = Quaternion.LookRotation(FirePoint.forward);
-
-            var bulletController = bullet.GetComponent<BulletController>();
-            if (bulletController != null)
+            if (fireCooldown.ExpiredOrNotRunning(Runner) && data.buttons.IsSet(NetworkInputData.MOUSEBUTTON0))
             {
-                bulletController.Init(FirePoint.forward, BulletSettings.BulletSpeed, 1f, _objectPool);
+                Vector3 spawnPos = Barrel.position;
+                Vector3 direction = Barrel.forward;
+                Quaternion rotation = Quaternion.LookRotation(direction);
+
+                Runner.Spawn(BulletPref, spawnPos, rotation, Object.InputAuthority,
+                    (runner, o) =>
+                    {
+                        o.GetComponent<BulletController>().Init(direction, WeaponSettings.BulletSpeed, 1f);
+                    });
+
+                fireCooldown = TickTimer.CreateFromSeconds(Runner, WeaponSettings.ReloadTime);
             }
         }
     }
+
 }

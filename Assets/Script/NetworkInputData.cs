@@ -7,7 +7,10 @@ namespace BattleArena.InputSynchronize
 {
     public struct NetworkInputData : INetworkInput
     {
-        public Vector2 Movement;
+        public const byte MOUSEBUTTON0 = 1;
+
+        public NetworkButtons buttons;
+        public Vector3 Movement;
         public Vector2 MouseDelta;
     }
 }

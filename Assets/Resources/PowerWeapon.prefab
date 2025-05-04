@@ -170,5 +170,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f07321237a86a334c8bc1a3d1a8128fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  BulletSettings: {fileID: 11400000, guid: 8ab42a3b80715fe48a08bdd2258a2e56, type: 2}
-  FirePoint: {fileID: 736252521291339510}
+  WeaponSettings: {fileID: 11400000, guid: 8ab42a3b80715fe48a08bdd2258a2e56, type: 2}
+  Barrel: {fileID: 736252521291339510}
+  BulletPref: {fileID: 807843672631580027, guid: 46f90a4498123fc4f8c7a7117d83e049, type: 3}

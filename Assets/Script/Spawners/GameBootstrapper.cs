@@ -1,4 +1,4 @@
-using Fusion;
+п»їusing Fusion;
 using Fusion.Sockets;
 using System;
 using UnityEngine;
@@ -11,35 +11,21 @@ using System.Collections;
 public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
 {
     public ObjectPool BulletPool;
-    public NetworkRunner RunnerPrefab;
-    public NetworkObject BulletPrefab;
+    public NetworkRunner RunnerPref;
+    public NetworkPrefabRef BulletPref;
+    public NetworkPrefabRef PlayerPref;
+    public NetworkPrefabRef FastWeaponPref;
+    public NetworkPrefabRef PowerWeaponPref;
     public Transform[] SpawnPoints;
 
     private int _bulletsToPreload = 30;
-    private GameObject _playerPrefab;
-    private GameObject _weapon;
     private NetworkRunner _runner;
+    private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
 
-    private void Awake()
+    public void SetRunner(NetworkRunner runner)
     {
-        _playerPrefab = Resources.Load<GameObject>("Player");
-        _weapon = Resources.Load<GameObject>("PowerWeapon");
-    }
-
-    private void Start()
-    {
-        _runner = Instantiate(RunnerPrefab);
-        _runner.ProvideInput = true;
-        _runner.AddCallbacks(this);
-
-        _runner.StartGame(new StartGameArgs()
-        {
-            GameMode = GameMode.AutoHostOrClient,
-            SessionName = "TestSession",
-            Scene = new NetworkSceneInfo(),
-            SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
-        });
-        StartCoroutine(WaitForRunnerAndPreload());
+        _runner = runner;
+        //StartCoroutine(WaitForRunnerAndPreload());
     }
 
     private IEnumerator WaitForRunnerAndPreload()
@@ -47,7 +33,7 @@ public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
         while (_runner.IsRunning == false)
             yield return null;
 
-        if (_runner.IsServer) // тільки сервер спавнить кулі
+        if (_runner.IsServer) // С‚С–Р»СЊРєРё СЃРµСЂРІРµСЂ СЃРїР°РІРЅРёС‚СЊ РєСѓР»С–
         {
             PreloadBullets();
         }
@@ -57,38 +43,44 @@ public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
     {
         for (int i = 0; i < _bulletsToPreload; i++)
         {
-            NetworkObject bullet = _runner.Spawn(BulletPrefab, Vector3.zero, Quaternion.identity, inputAuthority: null, onBeforeSpawned: (runner, obj) =>
+            NetworkObject bullet = _runner.Spawn(BulletPref, Vector3.zero, Quaternion.identity, inputAuthority: null, onBeforeSpawned: (runner, obj) =>
             {
-                obj.transform.position = Vector3.down * 100f; // тимчасово сховати
+                obj.transform.position = Vector3.down * 100f; // С‚РёРјС‡Р°СЃРѕРІРѕ СЃС…РѕРІР°С‚Рё
             });
-            bullet.GetComponent<NetworkObject>().gameObject.GetComponent<MeshRenderer>().enabled = false;
-            bullet.GetComponent<Collider>().enabled = false;
+            bullet.GetComponent<SphereCollider>().enabled = false;
             bullet.GetComponent<BulletController>().enabled = false;
-            BulletPool.AddBullet(bullet);       // додаємо до пулу
+            //BulletPool.AddBullet(bullet);       // РґРѕРґР°С”РјРѕ РґРѕ РїСѓР»Сѓ
         }
     }
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        if (player == runner.LocalPlayer)
+        if (runner.IsServer)
         {
             int randomIndex = UnityEngine.Random.Range(0, SpawnPoints.Length);
             Vector3 spawnPosition = new Vector3(SpawnPoints[randomIndex].position.x, 
                                     SpawnPoints[randomIndex].position.y + 0.35f, SpawnPoints[randomIndex].position.z);
-            NetworkObject playerInstance = runner.Spawn(_playerPrefab, spawnPosition, Quaternion.identity, player);
+            NetworkObject playerInstance = runner.Spawn(PlayerPref, spawnPosition, Quaternion.identity, player);
+            _spawnedCharacters.Add(player, playerInstance);
 
-            Transform cameraPosition = playerInstance.transform.GetChild(0);
-            NetworkObject weaponInstance = runner.Spawn(_weapon, Vector3.zero, Quaternion.identity);
+            Transform weaponPosition = playerInstance.transform.GetChild(0);
+            NetworkObject weaponInstance = runner.Spawn(FastWeaponPref, Vector3.zero, Quaternion.identity);
+            
+            weaponInstance.GetComponent<WeaponController>().Init(playerInstance);
+            playerInstance.GetComponent<PlayerMovement>().Init(weaponInstance.GetComponent<WeaponController>());
 
-            var weaponController = weaponInstance.GetComponent<WeaponController>();
-            if (weaponController != null)
-            {
-                weaponController.SetObjectPool(BulletPool);
-            }
-
-            weaponInstance.transform.SetParent(cameraPosition, worldPositionStays: false);
-            weaponInstance.transform.localPosition = new Vector3(0f, -0.8f, 1.6f);
+            weaponInstance.transform.SetParent(weaponPosition, worldPositionStays: false);
+            weaponInstance.transform.localPosition = new Vector3(0f, 0, 1f);
             weaponInstance.transform.localRotation = Quaternion.identity;
+        }
+    }
+
+    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
+    {
+        if (_spawnedCharacters.TryGetValue(player, out NetworkObject networkObject))
+        {
+            runner.Despawn(networkObject);
+            _spawnedCharacters.Remove(player);
         }
     }
 
@@ -97,10 +89,6 @@ public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
     }
 
     public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
-    {
-    }
-
-    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
     {
     }
 
