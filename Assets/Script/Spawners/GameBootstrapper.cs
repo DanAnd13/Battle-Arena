@@ -25,7 +25,7 @@ public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
     public void SetRunner(NetworkRunner runner)
     {
         _runner = runner;
-        //StartCoroutine(WaitForRunnerAndPreload());
+        StartCoroutine(WaitForRunnerAndPreload());
     }
 
     private IEnumerator WaitForRunnerAndPreload()
@@ -49,7 +49,7 @@ public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
             });
             bullet.GetComponent<SphereCollider>().enabled = false;
             bullet.GetComponent<BulletController>().enabled = false;
-            //BulletPool.AddBullet(bullet);       // додаємо до пулу
+            BulletPool.AddBullet(bullet);       // додаємо до пулу
         }
     }
 
@@ -63,15 +63,10 @@ public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
             NetworkObject playerInstance = runner.Spawn(PlayerPref, spawnPosition, Quaternion.identity, player);
             _spawnedCharacters.Add(player, playerInstance);
 
-            Transform weaponPosition = playerInstance.transform.GetChild(0);
             NetworkObject weaponInstance = runner.Spawn(FastWeaponPref, Vector3.zero, Quaternion.identity);
             
-            weaponInstance.GetComponent<WeaponController>().Init(playerInstance);
+            weaponInstance.GetComponent<WeaponController>().Init(playerInstance, BulletPool);
             playerInstance.GetComponent<PlayerMovement>().Init(weaponInstance.GetComponent<WeaponController>());
-
-            weaponInstance.transform.SetParent(weaponPosition, worldPositionStays: false);
-            weaponInstance.transform.localPosition = new Vector3(0f, 0, 1f);
-            weaponInstance.transform.localRotation = Quaternion.identity;
         }
     }
 

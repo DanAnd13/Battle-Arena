@@ -13,12 +13,12 @@ namespace BattleArena.Movement
         [Networked] 
         private TickTimer lifeTime { get; set; }
 
-        public void Init(Vector3 direction, float speed, float lifeTime)
+        public void Init(Vector3 direction, float speed, float lifeTime, ObjectPool pool)
         {
             this.direction = direction.normalized;
             this.speed = speed;
             this.lifeTime = TickTimer.CreateFromSeconds(Runner, lifeTime);
-            //this.objectPool = pool;
+            this.objectPool = pool;
             timer = 0f;
 
             //gameObject.SetActive(true);
@@ -29,8 +29,8 @@ namespace BattleArena.Movement
         public override void FixedUpdateNetwork()
         {
             if (lifeTime.Expired(Runner))
-                //ReturnToPool();
-                Runner.Despawn(Object);
+                ReturnToPool();
+                //Runner.Despawn(Object);
             else
                 transform.position += direction * speed * Runner.DeltaTime;
         }
@@ -43,7 +43,7 @@ namespace BattleArena.Movement
             // Приховуємо об'єкт або повертаємо до початкової позиції
             transform.position = Vector3.down * 100f;
 
-            //objectPool?.ReturnBullet(GetComponent<NetworkObject>());
+            objectPool?.ReturnBullet(GetComponent<NetworkObject>());
             //gameObject.SetActive(false);
         }
     }
