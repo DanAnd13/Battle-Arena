@@ -10,18 +10,19 @@ using System.Collections;
 
 public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
 {
-    public ObjectPool BulletPool;
+    public ParticleObjectPool ShootingParticlePool;
+    public ObjectPool ObjectPool;
     public NetworkRunner RunnerPref;
     public NetworkPrefabRef BulletPref;
     public NetworkPrefabRef PlayerPref;
     public NetworkPrefabRef FastWeaponPref;
     public NetworkPrefabRef PowerWeaponPref;
+    public NetworkPrefabRef ShootParticlePref;
     public Transform[] SpawnPoints;
 
-    private int _bulletsToPreload = 30;
+    private int _preloadCount = 30;
     private NetworkRunner _runner;
     private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
-
     public void SetRunner(NetworkRunner runner)
     {
         _runner = runner;
@@ -41,17 +42,16 @@ public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
 
     private void PreloadBullets()
     {
-        for (int i = 0; i < _bulletsToPreload; i++)
+        for (int i = 0; i < _preloadCount; i++)
         {
             NetworkObject bullet = _runner.Spawn(BulletPref, Vector3.zero, Quaternion.identity, inputAuthority: null, onBeforeSpawned: (runner, obj) =>
             {
                 obj.transform.position = Vector3.down * 100f; // тимчасово сховати
             });
-            bullet.GetComponent<SphereCollider>().enabled = false;
-            bullet.GetComponent<BulletController>().enabled = false;
-            BulletPool.AddBullet(bullet);       // додаємо до пулу
+            ObjectPool.AddObject(bullet);
         }
     }
+
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
@@ -65,7 +65,7 @@ public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
 
             NetworkObject weaponInstance = runner.Spawn(FastWeaponPref, Vector3.zero, Quaternion.identity);
             
-            weaponInstance.GetComponent<WeaponController>().Init(playerInstance, BulletPool);
+            weaponInstance.GetComponent<WeaponController>().Init(playerInstance, ObjectPool, ShootingParticlePool);
             playerInstance.GetComponent<PlayerMovement>().Init(weaponInstance.GetComponent<WeaponController>());
         }
     }

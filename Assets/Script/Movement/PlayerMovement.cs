@@ -8,6 +8,7 @@ namespace BattleArena.Movement
     public class PlayerMovement : NetworkBehaviour
     {
         public PlayerScriptableObject PlayerSettings;
+
         private NetworkCharacterController _cc;
         private WeaponController _weapon;
 

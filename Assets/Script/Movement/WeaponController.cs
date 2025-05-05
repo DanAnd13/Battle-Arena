@@ -1,9 +1,8 @@
 ﻿using BattleArena.InputSynchronize;
 using BattleArena.Parameters;
-using ExitGames.Client.Photon;
 using Fusion;
+using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Pool;
 
 namespace BattleArena.Movement
 {
@@ -13,28 +12,31 @@ namespace BattleArena.Movement
         public Transform Barrel;
         public BulletController BulletPref;
 
-        [Networked] private TickTimer fireCooldown { get; set; }
-        [Networked] private NetworkObject PlayerObject { get; set; }
-        private ObjectPool _pool;
+        [Networked] private TickTimer _fireCooldown { get; set; }
+        [Networked] private NetworkObject _playerObject { get; set; }
 
+        private ObjectPool _pool;
+        private ParticleObjectPool _shootParticle;
         public override void Spawned()
         {
-            if (PlayerObject != null)
+            if (_playerObject != null)
             {
-                Transform weaponPosition = PlayerObject.transform.GetChild(0); // як у спавнері
+                Transform weaponPosition = _playerObject.transform.GetChild(0);
                 transform.SetParent(weaponPosition, false);
                 transform.localPosition = new Vector3(0f, 0f, 1f);
                 transform.localRotation = Quaternion.identity;
             }
         }
 
-        public void Init(NetworkObject playerObj, ObjectPool pool)
+        public void Init(NetworkObject playerObj, ObjectPool pool, ParticleObjectPool shootParticle)
         {
-            PlayerObject = playerObj;
+            _playerObject = playerObj;
             _pool = pool;
-            if (PlayerObject != null)
+            _shootParticle = shootParticle;
+
+            if (_playerObject != null)
             {
-                Transform weaponPosition = PlayerObject.transform.GetChild(0); // як у спавнері
+                Transform weaponPosition = _playerObject.transform.GetChild(0);
                 transform.SetParent(weaponPosition, false);
                 transform.localPosition = new Vector3(0f, 0f, 1f);
                 transform.localRotation = Quaternion.identity;
@@ -43,20 +45,24 @@ namespace BattleArena.Movement
 
         public void HandleFireInput(NetworkInputData data)
         {
-            if (fireCooldown.ExpiredOrNotRunning(Runner) && data.buttons.IsSet(NetworkInputData.MOUSEBUTTON0))
+            if (_fireCooldown.ExpiredOrNotRunning(Runner) && data.buttons.IsSet(NetworkInputData.MOUSEBUTTON0))
             {
-                var bullet = _pool.GetBullet();
+                var bullet = _pool.GetObject();
                 if (bullet == null) return;
 
                 bullet.transform.position = Barrel.position;
                 bullet.transform.rotation = Quaternion.LookRotation(Barrel.forward);
 
                 var bulletCtrl = bullet.GetComponent<BulletController>();
-                bulletCtrl.Init(Barrel.forward, WeaponSettings.BulletSpeed, 1f, _pool); // передаємо pool
+                bulletCtrl.Init(Barrel.forward, WeaponSettings.BulletSpeed, 1f, _pool);
 
-                fireCooldown = TickTimer.CreateFromSeconds(Runner, WeaponSettings.ReloadTime);
+                ParticleSystem shootingParticle = _shootParticle.GetPooledObject();
+                shootingParticle.transform.position = Barrel.position;
+                shootingParticle.transform.rotation = Quaternion.LookRotation(Barrel.forward);
+                shootingParticle.Play();
+
+                _fireCooldown = TickTimer.CreateFromSeconds(Runner, WeaponSettings.ReloadTime);
             }
         }
     }
-
 }
