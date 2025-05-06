@@ -24,7 +24,7 @@ namespace BattleArena.Movement
 
         public override void FixedUpdateNetwork()
         {
-            if (GetInput(out NetworkInputData data))
+            if (GetInput(out NetworkInputData data) && _weapon != null)
             {
                 data.Movement.Normalize();
                 _cc.Move(data.Movement * PlayerSettings.MoveSpeed * Runner.DeltaTime);

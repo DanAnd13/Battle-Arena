@@ -3,37 +3,48 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NetworkLauncher : MonoBehaviour
+namespace BattleArena.Loader
 {
-    public NetworkRunner RunnerPrefab;
-    public GameBootstrapper GameBootstrapper;
-
-    private NetworkRunner _runner;
-
-    public void StartHost()
+    public class NetworkLauncher : MonoBehaviour
     {
-        StartGame(GameMode.Host);
-    }
+        public NetworkRunner RunnerPrefab;
+        public GameBootstrapper GameBootstrapper;
 
-    public void JoinGame()
-    {
-        StartGame(GameMode.Client);
-    }
+        private NetworkRunner _runner;
 
-    private async void StartGame(GameMode mode)
-    {
-        _runner = Instantiate(RunnerPrefab);
-        _runner.ProvideInput = true;
-        _runner.AddCallbacks(GameBootstrapper);
-
-        await _runner.StartGame(new StartGameArgs()
+        public void StartHost()
         {
-            GameMode = mode,
-            SessionName = "TestSession",
-            Scene = new NetworkSceneInfo(),
-            SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
-        });
+            StartGame(GameMode.Host);
+        }
 
-        GameBootstrapper.SetRunner(_runner);
+        public void JoinGame()
+        {
+            StartGame(GameMode.Client);
+        }
+
+        private async void StartGame(GameMode mode)
+        {
+            _runner = Instantiate(RunnerPrefab);
+            _runner.ProvideInput = true;
+            _runner.AddCallbacks(GameBootstrapper);
+
+            await _runner.StartGame(new StartGameArgs()
+            {
+                GameMode = mode,
+                SessionName = "TestSession",
+                Scene = new NetworkSceneInfo(),
+                SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
+            });
+            if (_runner.IsStarting)
+            {
+                GameBootstrapper.IsPalyerLoading = true;
+            }
+            else
+            {
+                GameBootstrapper.IsPalyerLoading = false;
+            }
+
+            GameBootstrapper.SetRunner(_runner);
+        }
     }
 }

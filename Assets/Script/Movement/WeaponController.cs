@@ -1,7 +1,6 @@
 ﻿using BattleArena.InputSynchronize;
 using BattleArena.Parameters;
 using Fusion;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace BattleArena.Movement
