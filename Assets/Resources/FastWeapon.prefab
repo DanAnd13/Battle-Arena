@@ -142,6 +142,7 @@ MonoBehaviour:
   WeaponSettings: {fileID: 11400000, guid: bfd257ca740c11e4e8e9131e9b19d418, type: 2}
   Barrel: {fileID: 533250148019939595}
   BulletPref: {fileID: 807843672631580027, guid: 46f90a4498123fc4f8c7a7117d83e049, type: 3}
+  _IsFiring: 0
 --- !u!1 &4229467912147147179
 GameObject:
   m_ObjectHideFlags: 0

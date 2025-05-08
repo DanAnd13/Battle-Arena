@@ -13,7 +13,6 @@ namespace BattleArena.Loader
 {
     public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
     {
-        public ParticleObjectPool ShootingParticlePool;
         public ObjectPool ObjectPool;
         public Inventory Inventory;
         public NetworkRunner RunnerPref;
@@ -108,15 +107,15 @@ namespace BattleArena.Loader
                 NetworkObject weaponInstance = null;
                 if (weaponName == InventoryItem.NamesOfItems.FastWeapon.ToString())
                 {
-                    weaponInstance = runner.Spawn(_fastWeaponPref, Vector3.zero, Quaternion.identity);
+                    weaponInstance = runner.Spawn(_fastWeaponPref, Vector3.zero, Quaternion.identity, player);
                 }
                 else if (weaponName == InventoryItem.NamesOfItems.PowerWeapon.ToString())
                 {
-                    weaponInstance = runner.Spawn(_powerWeaponPref, Vector3.zero, Quaternion.identity);
+                    weaponInstance = runner.Spawn(_powerWeaponPref, Vector3.zero, Quaternion.identity, player);
                 }
 
-                weaponInstance.GetComponent<WeaponController>().Init(playerInstance, ObjectPool, ShootingParticlePool);
-                playerInstance.GetComponent<PlayerMovement>().Init(weaponInstance.GetComponent<WeaponController>());
+                weaponInstance.GetComponent<WeaponController>().RPC_SetPlayer(playerInstance);
+                weaponInstance.GetComponent<WeaponController>().Init(playerInstance, ObjectPool);
             }
         }
 
