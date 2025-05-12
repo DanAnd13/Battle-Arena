@@ -2,6 +2,7 @@ using Fusion;
 using UnityEngine;
 using BattleArena.Parameters;
 using BattleArena.InputSynchronize;
+using BattleArena.Loader;
 
 namespace BattleArena.Movement
 {

@@ -3493,7 +3493,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c404ca24301a6ea4996f10b269803e42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ShootingParticlePool: {fileID: 553540845}
   ObjectPool: {fileID: 634524559}
   Inventory: {fileID: 963194232}
   RunnerPref: {fileID: 2970574085684280672, guid: 98bf1b85b077bd5419b7a5b4a856c859, type: 3}

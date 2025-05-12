@@ -57,4 +57,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22d15c67fd04f3f47afd6c279f96b9a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ResetInput: 0

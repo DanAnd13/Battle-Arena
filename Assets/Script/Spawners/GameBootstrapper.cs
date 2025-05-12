@@ -32,11 +32,12 @@ namespace BattleArena.Loader
         private GameObject _playerPref;
         private GameObject _fastWeaponPref;
         private GameObject _powerWeaponPref;
-        private PlayerRef _playerToSpawn;
         private int _preloadCount = 30;
         private NetworkRunner _runner;
         private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new();
-        private Dictionary<PlayerRef, string> _playerWeapons = new();
+        public Dictionary<PlayerRef, string> _playerWeapons = new();
+        public static GameBootstrapper Instance { get; private set; }
+
 
         private void Awake()
         {
@@ -44,6 +45,8 @@ namespace BattleArena.Loader
             _playerPref = Resources.Load<GameObject>("Player");
             _fastWeaponPref = Resources.Load<GameObject>("FastWeapon");
             _powerWeaponPref = Resources.Load<GameObject>("PowerWeapon");
+
+            Instance = this;
         }
         public void SetRunner(NetworkRunner runner)
         {
@@ -79,7 +82,6 @@ namespace BattleArena.Loader
             IsPlayerJoin = false;
             Inventory.LoadInventory(enteredWeponName);
             Inventory.LoadInventory(enteredItem);
-            //RegisterPlayerWeapon(_playerToSpawn, enteredWeponName);
 
             if (_runner.IsServer)
             {
@@ -88,7 +90,6 @@ namespace BattleArena.Loader
                     var playerRef = palyer.Key;
                     LoadPlayersPref(_runner, playerRef);
                 }
-                _playerToSpawn = PlayerRef.None; // очистити
             }
         }
 
@@ -96,13 +97,11 @@ namespace BattleArena.Loader
         {
             if (runner.IsServer)
             {
-                int randomIndex = UnityEngine.Random.Range(0, SpawnPoints.Length);
-                Vector3 spawnPosition = new Vector3(SpawnPoints[randomIndex].position.x,
-                                        SpawnPoints[randomIndex].position.y + 0.35f, SpawnPoints[randomIndex].position.z);
-                NetworkObject playerInstance = runner.Spawn(_playerPref, spawnPosition, Quaternion.identity, player);
-                _spawnedCharacters[player] = playerInstance;
+                NetworkObject playerInstance = _spawnedCharacters[player];
 
-                string weaponName = _playerWeapons.ContainsKey(player) ? _playerWeapons[player] : "FastWeapon"; // дефолт
+              Debug.Log(playerInstance.Name +" "+ playerInstance.GetComponent<PlayerHealth>().CurrentHealth);
+
+                string weaponName = _playerWeapons.ContainsKey(player) ? _playerWeapons[player] : "FastWeapon";
 
                 NetworkObject weaponInstance = null;
                 if (weaponName == InventoryItem.NamesOfItems.FastWeapon.ToString())
@@ -121,14 +120,21 @@ namespace BattleArena.Loader
 
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
         {
+            if (runner.IsServer)
+            {
+                // Спавнимо гравця за межами карти
+                int randomIndex = UnityEngine.Random.Range(0, SpawnPoints.Length);
+                Vector3 spawnPosition = new Vector3(SpawnPoints[randomIndex].position.x,
+                                        SpawnPoints[randomIndex].position.y + 0.35f, SpawnPoints[randomIndex].position.z);
+                NetworkObject playerInstance = runner.Spawn(_playerPref, spawnPosition, Quaternion.identity, player);
+                _spawnedCharacters.Add(player, playerInstance);
+            }
 
             if (runner.LocalPlayer == player)
             {
                 Inventory.ClearInventory();
             }
-            _spawnedCharacters.Add(player, null);
             IsPlayerJoin = true;
-            _playerToSpawn = player;
 
         }
 
