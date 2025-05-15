@@ -99,8 +99,6 @@ namespace BattleArena.Loader
             {
                 NetworkObject playerInstance = _spawnedCharacters[player];
 
-              Debug.Log(playerInstance.Name +" "+ playerInstance.GetComponent<PlayerHealth>().CurrentHealth);
-
                 string weaponName = _playerWeapons.ContainsKey(player) ? _playerWeapons[player] : "FastWeapon";
 
                 NetworkObject weaponInstance = null;

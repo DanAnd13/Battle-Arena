@@ -19,6 +19,14 @@ public class PlayerHealth : NetworkBehaviour
 
     private float _maxHealth;
 
+    private void Update()
+    {
+        if (CurrentHealth <=0)
+        {
+            gameObject.SetActive(false);
+        }
+    }
+
     public override void Spawned()
     {
         if (_playerSettings != null)
@@ -32,15 +40,17 @@ public class PlayerHealth : NetworkBehaviour
         }
     }
 
-    public void TakeDamage(int amount)
+    public void TakeDamage(float amount)
     {
+        Debug.Log($"TakeDamage called, amount = {amount}, HasStateAuthority = {HasStateAuthority}");
         if (HasStateAuthority)
         {
             CurrentHealth = Mathf.Max(0, CurrentHealth - amount);
+            Debug.Log("New health: " + CurrentHealth);
         }
     }
 
-    public void Heal(int amount)
+    public void Heal(float amount)
     {
         if (HasStateAuthority)
         {
