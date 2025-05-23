@@ -37,6 +37,7 @@ namespace BattleArena.InputSynchronize
                 data.Movement += Vector3.right;
 
             data.buttons.Set(NetworkInputData.MOUSEBUTTON0, Input.GetMouseButton(0));
+            data.buttons.Set(NetworkInputData.USEITEM, Input.GetKeyDown(KeyCode.F));
 
             input.Set(data);
         }

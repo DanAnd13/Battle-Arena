@@ -832,7 +832,7 @@ MonoBehaviour:
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
+  m_FillMethod: 0
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
@@ -3398,7 +3398,7 @@ GameObject:
   - component: {fileID: 963194229}
   - component: {fileID: 963194230}
   - component: {fileID: 963194231}
-  - component: {fileID: 963194232}
+  - component: {fileID: 963194234}
   - component: {fileID: 963194233}
   m_Layer: 0
   m_Name: Main Camera
@@ -3494,7 +3494,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ObjectPool: {fileID: 634524559}
-  Inventory: {fileID: 963194232}
+  Inventory: {fileID: 963194234}
   RunnerPref: {fileID: 2970574085684280672, guid: 98bf1b85b077bd5419b7a5b4a856c859, type: 3}
   SpawnPoints:
   - {fileID: 604426417}
@@ -3535,19 +3535,6 @@ MonoBehaviour:
   SpawnWindow: {fileID: 1303556059}
   WeaponDropdawn: {fileID: 1619930957}
   ItemDropdawn: {fileID: 141844275}
---- !u!114 &963194232
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 963194225}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3ad23a13c05e9ce419cb683ac4306d36, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  InventoryScriptableObject: {fileID: 11400000, guid: 4508d5cbe01ee5b45b1303db1e378819, type: 2}
 --- !u!114 &963194233
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3566,6 +3553,19 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours: []
   ForceRemoteRenderTimeframe: 0
+--- !u!114 &963194234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48d3e049a5c697e4b81f3e3abf08e96b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Items: []
 --- !u!1 &978416478
 GameObject:
   m_ObjectHideFlags: 0

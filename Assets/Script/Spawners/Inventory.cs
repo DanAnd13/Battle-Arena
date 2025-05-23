@@ -20,8 +20,8 @@ namespace BattleArena.Parameters
             {
                 // Перевіряємо, чи вже є такий предмет
                 InventoryItem existingItem = InventoryScriptableObject.Items.Find(i => i.Name == itemName);
-                if (existingItem == null)
-                {
+                /*if (existingItem == null)
+                {*/
                     InventoryItem newItem = new InventoryItem();
                     newItem.Name = itemName;
                     newItem.Count = 1;
@@ -37,22 +37,18 @@ namespace BattleArena.Parameters
 
                     InventoryScriptableObject.Items.Add(newItem);
                 }
-            }
+           // }
 
         }
 
-        public string GetItemFromInventory(string name)
+        /*public NetworkInventoryItem GetItemFromInventory(int index)
         {
-            InventoryItem.NamesOfItems itemName;
-
-            // Спроба конвертувати назву у enum
-            if (System.Enum.TryParse(name, out itemName))
+            if (index >= 0 && index < InventoryScriptableObject.Items.Count)
             {
-                InventoryItem existingItem = InventoryScriptableObject.Items.Find(i => i.Name == itemName);
-                return existingItem.Name.ToString();
+                return InventoryScriptableObject.Items[index];
             }
             return null;
-        }
+        }*/
 
         public void ClearInventory()
         {

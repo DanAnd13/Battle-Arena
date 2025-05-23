@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ItemsSettings
   m_EditorClassIdentifier: 
   HealthRestore: 35
-  ShieldHealth: 25
+  ShieldHealth: 50
   GranadeDamage: 25
   GranadeSpeed: 10
   GranadeRadius: 15

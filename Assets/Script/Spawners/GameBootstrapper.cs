@@ -14,7 +14,7 @@ namespace BattleArena.Loader
     public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
     {
         public ObjectPool ObjectPool;
-        public Inventory Inventory;
+        public NetworkedInventory Inventory;
         public NetworkRunner RunnerPref;
         public Transform[] SpawnPoints;
         [HideInInspector]
@@ -80,8 +80,25 @@ namespace BattleArena.Loader
         public void StartGame()
         {
             IsPlayerJoin = false;
-            Inventory.LoadInventory(enteredWeponName);
-            Inventory.LoadInventory(enteredItem);
+            InventoryItem.NamesOfItems itemName;
+            if (Enum.TryParse(enteredWeponName, out itemName))
+            {
+                Inventory.SetItem(0, new InventoryItem
+                {
+                    Name = itemName,
+                    Count = 1,
+                    IsSingleUse = false
+                });
+            }
+            if (Enum.TryParse(enteredItem, out itemName))
+            {
+                Inventory.SetItem(1, new InventoryItem
+                {
+                    Name = itemName,
+                    Count = 1,
+                    IsSingleUse = true
+                });
+            }
 
             if (_runner.IsServer)
             {
@@ -100,7 +117,6 @@ namespace BattleArena.Loader
                 NetworkObject playerInstance = _spawnedCharacters[player];
 
                 string weaponName = _playerWeapons.ContainsKey(player) ? _playerWeapons[player] : "FastWeapon";
-
                 NetworkObject weaponInstance = null;
                 if (weaponName == InventoryItem.NamesOfItems.FastWeapon.ToString())
                 {
@@ -113,6 +129,8 @@ namespace BattleArena.Loader
 
                 weaponInstance.GetComponent<WeaponController>().RPC_SetPlayer(playerInstance);
                 weaponInstance.GetComponent<WeaponController>().Init(playerInstance, ObjectPool);
+                var dispatcher = playerInstance.GetComponent<PlayerInputDispatcher>();
+                dispatcher.Init(playerInstance.GetComponent<PlayerHealth>(), weaponInstance.GetComponent<WeaponController>());
             }
         }
 

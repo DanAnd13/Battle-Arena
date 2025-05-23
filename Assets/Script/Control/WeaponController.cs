@@ -68,13 +68,6 @@ namespace BattleArena.Movement
                 catch { }
             }
         }
-        public override void FixedUpdateNetwork()
-        {
-            if (GetInput(out NetworkInputData data))
-            {
-                HandleFireInput(data);
-            }          
-        }
 
         private void PlayParticle()
         {
