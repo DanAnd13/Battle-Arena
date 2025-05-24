@@ -1,7 +1,6 @@
 using BattleArena.InputSynchronize;
-using BattleArena.Loader;
 using BattleArena.Movement;
-using BattleArena.Parameters;
+using BattleArena.Inventory;
 using Fusion;
 using System;
 using System.Reflection;
@@ -33,7 +32,6 @@ namespace BattleArena.Parameters
         {
             _playerMovement = GetComponent<PlayerMovement>();
             _playerSettings = _playerMovement.PlayerSettings;
-            //_networkInventory = GetComponent<NetworkedInventory>();
         }
 
         private void Update()
@@ -51,7 +49,7 @@ namespace BattleArena.Parameters
         }
         public override void Spawned()
         {
-            _networkInventory = GameBootstrapper.Instance.GetComponent<NetworkedInventory>();
+            _networkInventory = gameObject.GetComponent<NetworkedInventory>();
             _networkInventory.Initialize(2);
             _maxHealth = _playerSettings != null ? _playerSettings.MaxHealth : 100;
 
@@ -81,7 +79,7 @@ namespace BattleArena.Parameters
                 if (_shieldTimer <= 0)
                 {
                     _isShieldActive = false;
-                    fillImage.color = Object.HasInputAuthority ? _ownColor : _enemyColor;
+                    RpcSetShieldColor(false);
                     CurrentHealth -= ItemSettings.ShieldHealth;
                 }
             }
@@ -100,7 +98,6 @@ namespace BattleArena.Parameters
                     {
                         Heal(ItemSettings.HealthRestore);
                         _networkInventory.Items[1].Count = 0;
-                        Debug.Log("Used Medkit");
                     }
                     break;
 
@@ -110,9 +107,8 @@ namespace BattleArena.Parameters
                         CurrentHealth += ItemSettings.ShieldHealth;
                         _shieldTimer = 3f;
                         _isShieldActive = true;
-                        fillImage.color = Color.cyan;
+                        RpcSetShieldColor(true);
                         _networkInventory.Items[1].Count = 0;
-                        Debug.Log("Shield Activated");
                     }
                     break;
 
@@ -121,6 +117,13 @@ namespace BattleArena.Parameters
                     break;
             }
         }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        public void RpcSetShieldColor(bool active)
+        {
+            fillImage.color = active ? Color.cyan : (Object.HasInputAuthority ? _ownColor : _enemyColor);
+        }
+
         public void TakeDamage(float amount)
         {
             Debug.Log($"TakeDamage called, amount = {amount}, HasStateAuthority = {HasStateAuthority}");

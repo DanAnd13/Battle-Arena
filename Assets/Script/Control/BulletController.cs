@@ -1,4 +1,4 @@
-using Fusion;
+﻿using Fusion;
 using UnityEngine;
 using BattleArena.Parameters;
 
@@ -24,7 +24,7 @@ namespace BattleArena.Movement
             {
                 Debug.Log("Found PlayerHealth on " + other.name);
                 RPC_ApplyDamage(health.Object, _damage);
-                //ReturnToPool();
+                ReturnToPool();
             }
         }
 
@@ -68,12 +68,22 @@ namespace BattleArena.Movement
 
         private void ReturnToPool()
         {
-            GetComponent<SphereCollider>().enabled = false;
+            if (!Object || !Object.IsValid) return;
 
+            GetComponent<SphereCollider>().enabled = false;
             enabled = false;
             transform.position = Vector3.down * 100f;
 
-            _objectPool?.ReturnObject(GetComponent<NetworkObject>());
+            _lifeTime = TickTimer.None;
+
+            if (_objectPool != null)
+            {
+                _objectPool.ReturnObject(Object);
+            }
+            else
+            {
+                Debug.LogWarning("Object pool not assigned!");
+            }
         }
     }
 }

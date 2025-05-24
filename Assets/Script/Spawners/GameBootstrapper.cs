@@ -6,7 +6,7 @@ using BattleArena.Parameters;
 using BattleArena.Movement;
 using System.Collections.Generic;
 using System.Collections;
-using BattleArena.InputSynchronize;
+using BattleArena.Inventory;
 using System.Linq;
 
 namespace BattleArena.Loader
@@ -14,15 +14,10 @@ namespace BattleArena.Loader
     public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
     {
         public ObjectPool ObjectPool;
-        public NetworkedInventory Inventory;
         public NetworkRunner RunnerPref;
         public Transform[] SpawnPoints;
         [HideInInspector]
-        public bool IsPlayerJoin = false;
-        [HideInInspector]
         public bool IsPalyerLoading = true;
-        [HideInInspector]
-        public bool IsLocalPlayer = false;
         [HideInInspector]
         public string enteredWeponName;
         [HideInInspector]
@@ -79,27 +74,6 @@ namespace BattleArena.Loader
 
         public void StartGame()
         {
-            IsPlayerJoin = false;
-            InventoryItem.NamesOfItems itemName;
-            if (Enum.TryParse(enteredWeponName, out itemName))
-            {
-                Inventory.SetItem(0, new InventoryItem
-                {
-                    Name = itemName,
-                    Count = 1,
-                    IsSingleUse = false
-                });
-            }
-            if (Enum.TryParse(enteredItem, out itemName))
-            {
-                Inventory.SetItem(1, new InventoryItem
-                {
-                    Name = itemName,
-                    Count = 1,
-                    IsSingleUse = true
-                });
-            }
-
             if (_runner.IsServer)
             {
                 foreach (var palyer in _spawnedCharacters.ToList())
@@ -116,13 +90,14 @@ namespace BattleArena.Loader
             {
                 NetworkObject playerInstance = _spawnedCharacters[player];
 
-                string weaponName = _playerWeapons.ContainsKey(player) ? _playerWeapons[player] : "FastWeapon";
+                //string weaponName = _playerWeapons.ContainsKey(player) ? _playerWeapons[player] : "FastWeapon";
+                InventoryItem weaponName = playerInstance.GetComponent<NetworkedInventory>().GetItem(0);
                 NetworkObject weaponInstance = null;
-                if (weaponName == InventoryItem.NamesOfItems.FastWeapon.ToString())
+                if (weaponName.Name == InventoryItem.NamesOfItems.FastWeapon)
                 {
                     weaponInstance = runner.Spawn(_fastWeaponPref, Vector3.zero, Quaternion.identity, player);
                 }
-                else if (weaponName == InventoryItem.NamesOfItems.PowerWeapon.ToString())
+                else if (weaponName.Name == InventoryItem.NamesOfItems.PowerWeapon)
                 {
                     weaponInstance = runner.Spawn(_powerWeaponPref, Vector3.zero, Quaternion.identity, player);
                 }
@@ -146,21 +121,21 @@ namespace BattleArena.Loader
                 _spawnedCharacters.Add(player, playerInstance);
             }
 
-            if (runner.LocalPlayer == player)
+            /*if (runner.LocalPlayer == player)
             {
                 Inventory.ClearInventory();
-            }
-            IsPlayerJoin = true;
+            }*/
+            
 
         }
 
         public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
         {
-            if (runner.LocalPlayer == player)
+            /*if (runner.LocalPlayer == player)
             {
                 IsPlayerJoin = false;
                 Inventory.ClearInventory();
-            }
+            }*/
 
             if (_spawnedCharacters.TryGetValue(player, out NetworkObject networkObject))
             {

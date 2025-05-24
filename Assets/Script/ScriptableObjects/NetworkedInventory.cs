@@ -4,43 +4,46 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NetworkedInventory : MonoBehaviour
+namespace BattleArena.Inventory
 {
-    public List<InventoryItem> Items = new List<InventoryItem>();
-
-    public void Initialize(int size)
+    public class NetworkedInventory : NetworkBehaviour
     {
-        Items = new List<InventoryItem>(new InventoryItem[size]);
-    }
+        public List<InventoryItem> Items = new List<InventoryItem>();
 
-    public void SetItem(int index, InventoryItem item)
-    {
-        if (index < 0 || index >= Items.Count) return;
-        Items[index] = new InventoryItem
+        public void Initialize(int size)
         {
-            Name = item.Name,
-            Count = item.Count,
-            IsSingleUse = item.IsSingleUse
-        };
-    }
+            Items = new List<InventoryItem>(new InventoryItem[size]);
+        }
 
-    public InventoryItem GetItem(int index)
-    {
-        if (index < 0 || index >= Items.Count) return default;
-        var item = Items[index];
-        return new InventoryItem
+        public void SetItem(int index, InventoryItem item)
         {
-            Name = item.Name,
-            Count = item.Count,
-            IsSingleUse = item.IsSingleUse
-        };
-    }
+            if (index < 0 || index >= Items.Count) return;
+            Items[index] = new InventoryItem
+            {
+                Name = item.Name,
+                Count = item.Count,
+                IsSingleUse = item.IsSingleUse
+            };
+        }
 
-    public void ClearInventory()
-    {
-        for (int i = 0; i < Items.Count; i++)
+        public InventoryItem GetItem(int index)
         {
-            Items[i] = new InventoryItem();
+            if (index < 0 || index >= Items.Count) return default;
+            var item = Items[index];
+            return new InventoryItem
+            {
+                Name = item.Name,
+                Count = item.Count,
+                IsSingleUse = item.IsSingleUse
+            };
+        }
+
+        public void ClearInventory()
+        {
+            for (int i = 0; i < Items.Count; i++)
+            {
+                Items[i] = new InventoryItem();
+            }
         }
     }
 }

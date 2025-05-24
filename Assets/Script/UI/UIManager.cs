@@ -11,10 +11,8 @@ namespace BattleArena.UI
     public class UIManager : MonoBehaviour
     {
         public GameObject LobbyWindow;
-        public GameObject SpawnWindow;
-        public TextMeshProUGUI WeaponDropdawn;
-        public TextMeshProUGUI ItemDropdawn;
-        //public GameObject PlayButton;
+        //public TextMeshProUGUI WeaponDropdawn;
+        //public TextMeshProUGUI ItemDropdawn;
 
         private GameBootstrapper _bootstrapper;
 
@@ -34,16 +32,8 @@ namespace BattleArena.UI
                 {
                     LobbyWindow.SetActive(false);
                 }
-                if (_bootstrapper.IsPlayerJoin)
-                {
-                    SpawnWindow.SetActive(true);
-                }
-                else
-                {
-                    SpawnWindow.SetActive(false);
-                }
-                _bootstrapper.enteredWeponName = WeaponDropdawn.text;
-                _bootstrapper.enteredItem = ItemDropdawn.text;
+                //_bootstrapper.enteredWeponName = WeaponDropdawn.text;
+                //_bootstrapper.enteredItem = ItemDropdawn.text;
             }
     }
 }
