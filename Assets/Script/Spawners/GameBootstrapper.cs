@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections;
 using BattleArena.Inventory;
 using System.Linq;
+using UnityEditor;
 
 namespace BattleArena.Loader
 {
@@ -84,6 +85,42 @@ namespace BattleArena.Loader
             }
         }
 
+        public void RespawnPlayer(PlayerHealth playerHealth)
+        {
+            StartCoroutine(RespawnAfterDelay(5f, playerHealth));
+        }
+
+        private IEnumerator RespawnAfterDelay(float delay, PlayerHealth playerHealth)
+        {
+            yield return new WaitForSeconds(delay);
+
+            Vector3 spawnPoint = GetRandomSpawnpoint();
+            playerHealth.transform.position = spawnPoint;
+
+            playerHealth.IsPlayerDead = false;
+            playerHealth.CurrentHealth = 100;
+            playerHealth.gameObject.SetActive(true);
+        }
+
+        public void SpawnPlayer(NetworkRunner runner, PlayerRef player)
+        {
+            if (runner.IsServer)
+            {
+                // Спавнимо гравця за межами карти
+                Vector3 spawnPosition = GetRandomSpawnpoint();
+                NetworkObject playerInstance = runner.Spawn(_playerPref, spawnPosition, Quaternion.identity, player);
+                _spawnedCharacters.Add(player, playerInstance);
+            }
+        }
+
+        public Vector3 GetRandomSpawnpoint()
+        {
+            int randomIndex = UnityEngine.Random.Range(0, SpawnPoints.Length);
+            Vector3 spawnPosition = new Vector3(SpawnPoints[randomIndex].position.x,
+                                        SpawnPoints[randomIndex].position.y + 0.35f, SpawnPoints[randomIndex].position.z);
+            return spawnPosition;
+        }
+
         public void LoadPlayersPref(NetworkRunner runner, PlayerRef player)
         {
             if (runner.IsServer)
@@ -105,28 +142,14 @@ namespace BattleArena.Loader
                 weaponInstance.GetComponent<WeaponController>().RPC_SetPlayer(playerInstance);
                 weaponInstance.GetComponent<WeaponController>().Init(playerInstance, ObjectPool);
                 var dispatcher = playerInstance.GetComponent<PlayerInputDispatcher>();
-                dispatcher.Init(playerInstance.GetComponent<PlayerHealth>(), weaponInstance.GetComponent<WeaponController>());
+                dispatcher.Init(playerInstance.GetComponent<InventoryManager>(), weaponInstance.GetComponent<WeaponController>());
+                playerInstance.GetComponent<InventoryManager>().ResetItemAmount();
             }
         }
 
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
         {
-            if (runner.IsServer)
-            {
-                // Спавнимо гравця за межами карти
-                int randomIndex = UnityEngine.Random.Range(0, SpawnPoints.Length);
-                Vector3 spawnPosition = new Vector3(SpawnPoints[randomIndex].position.x,
-                                        SpawnPoints[randomIndex].position.y + 0.35f, SpawnPoints[randomIndex].position.z);
-                NetworkObject playerInstance = runner.Spawn(_playerPref, spawnPosition, Quaternion.identity, player);
-                _spawnedCharacters.Add(player, playerInstance);
-            }
-
-            /*if (runner.LocalPlayer == player)
-            {
-                Inventory.ClearInventory();
-            }*/
-            
-
+            SpawnPlayer(runner, player);
         }
 
         public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)

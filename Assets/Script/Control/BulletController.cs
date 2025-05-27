@@ -22,7 +22,6 @@ namespace BattleArena.Movement
             var health = other.GetComponent<PlayerHealth>();
             if (health != null)
             {
-                Debug.Log("Found PlayerHealth on " + other.name);
                 RPC_ApplyDamage(health.Object, _damage);
                 ReturnToPool();
             }
@@ -31,12 +30,10 @@ namespace BattleArena.Movement
        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         private void RPC_ApplyDamage(NetworkObject targetPlayer, float damage)
         {
-            Debug.Log($"[RPC_ApplyDamage] Called for {targetPlayer}, damage = {damage}");
-        
+      
             var health = targetPlayer.GetComponent<PlayerHealth>();
             if (health != null)
             {
-                Debug.Log($"Applying damage to {targetPlayer} ({targetPlayer.name})");
                 health.TakeDamage(damage);
             }
             else

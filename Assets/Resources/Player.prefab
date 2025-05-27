@@ -2516,7 +2516,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _CurrentHealth: 0
   _PlayerNickname: 
-  fillImage: {fileID: 4971567717280966604}
+  _IsPlayerDead: 0
+  FillImage: {fileID: 4971567717280966604}
   PlayerName: {fileID: 2050467763724890499}
   ItemSettings: {fileID: 11400000, guid: de73ac9fb239d81429fb3239e0e3e173, type: 2}
 --- !u!114 &7592256479825778388

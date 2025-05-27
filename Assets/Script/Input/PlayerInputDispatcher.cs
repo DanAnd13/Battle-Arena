@@ -1,4 +1,5 @@
 using BattleArena.InputSynchronize;
+using BattleArena.Inventory;
 using BattleArena.Movement;
 using BattleArena.Parameters;
 using Fusion;
@@ -8,12 +9,12 @@ using UnityEngine;
 
 public class PlayerInputDispatcher : NetworkBehaviour
 {
-    private PlayerHealth _playerHealth;
+    private InventoryManager _inventoryManager;
     private WeaponController _weaponController;
 
-    public void Init(PlayerHealth health, WeaponController weapon)
+    public void Init(InventoryManager inventory, WeaponController weapon)
     {
-        _playerHealth = health;
+        _inventoryManager = inventory;
         _weaponController = weapon;
     }
 
@@ -22,7 +23,7 @@ public class PlayerInputDispatcher : NetworkBehaviour
         if (GetInput(out NetworkInputData data))
         {
             _weaponController?.HandleFireInput(data);
-            _playerHealth?.HandleItemInput(data);
+            _inventoryManager?.HandleItemInput(data);
         }
     }
 }

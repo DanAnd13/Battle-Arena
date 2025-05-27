@@ -7,6 +7,8 @@ using System.Reflection;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using BattleArena.Loader;
+using System.Collections;
 
 namespace BattleArena.Parameters
 {
@@ -15,19 +17,23 @@ namespace BattleArena.Parameters
         [Networked]
         public float CurrentHealth { get; set; }
         [Networked]
-        public string PlayerNickname { get; set; }
-        public Image fillImage;
+        public string PlayerNickname { get; private set; }
+        [Networked]
+        public bool IsPlayerDead { get; set; }
+
+        [Networked]
+        public int DeathCount { get; set; }
+
+        public Image FillImage;
         public TextMeshProUGUI PlayerName;
         public ItemScriptableObject ItemSettings;
 
-        private NetworkedInventory _networkInventory;
         private PlayerMovement _playerMovement;
         private PlayerScriptableObject _playerSettings;
         private Color _ownColor = Color.yellow;
         private Color _enemyColor = Color.red;
         private float _maxHealth;
-        private bool _isShieldActive = false;
-        private float _shieldTimer = 0f;
+
         private void Awake()
         {
             _playerMovement = GetComponent<PlayerMovement>();
@@ -39,98 +45,37 @@ namespace BattleArena.Parameters
             if (CurrentHealth <= 0)
             {
                 gameObject.SetActive(false);
+                IsPlayerDead = true;
+                DeathCount ++;
+                GameBootstrapper.Instance.RespawnPlayer(this);
             }
-
-            if (CurrentHealth != null)
+            else
             {
                 float normalizedHealth = CurrentHealth / _maxHealth;
-                fillImage.fillAmount = Mathf.Clamp01(normalizedHealth);
+                FillImage.fillAmount = Mathf.Clamp01(normalizedHealth);
+                gameObject.SetActive(true);
             }
         }
         public override void Spawned()
         {
-            _networkInventory = gameObject.GetComponent<NetworkedInventory>();
-            _networkInventory.Initialize(2);
             _maxHealth = _playerSettings != null ? _playerSettings.MaxHealth : 100;
-
+            IsPlayerDead = false;
             if (HasStateAuthority)
             {
                 CurrentHealth = _maxHealth;
                 PlayerNickname = "Player" + Object.InputAuthority.PlayerId;
             }
 
-            fillImage.color = Object.HasInputAuthority ? _ownColor : _enemyColor;
+            FillImage.color = Object.HasInputAuthority ? _ownColor : _enemyColor;
 
             PlayerName.text = PlayerNickname;
         }
 
-
-        public void HandleItemInput(NetworkInputData data)
-        {
-            if (!HasStateAuthority || _networkInventory == null) return;
-
-            if (data.buttons.IsSet(NetworkInputData.USEITEM) && _networkInventory.Items[1].Count > 0)
-            {
-                UseItem();
-            }
-            if (_isShieldActive)
-            {
-                _shieldTimer -= Runner.DeltaTime;
-                if (_shieldTimer <= 0)
-                {
-                    _isShieldActive = false;
-                    RpcSetShieldColor(false);
-                    CurrentHealth -= ItemSettings.ShieldHealth;
-                }
-            }
-        }
-
-        private void UseItem()
-        {
-            if (!HasStateAuthority) return;
-
-            InventoryItem activeItem = _networkInventory.Items[1];
-
-            switch (activeItem.Name)
-            {
-                case InventoryItem.NamesOfItems.Medkit:
-                    if (CurrentHealth < _maxHealth)
-                    {
-                        Heal(ItemSettings.HealthRestore);
-                        _networkInventory.Items[1].Count = 0;
-                    }
-                    break;
-
-                case InventoryItem.NamesOfItems.Shield:
-                    if (!_isShieldActive)
-                    {
-                        CurrentHealth += ItemSettings.ShieldHealth;
-                        _shieldTimer = 3f;
-                        _isShieldActive = true;
-                        RpcSetShieldColor(true);
-                        _networkInventory.Items[1].Count = 0;
-                    }
-                    break;
-
-                default:
-                    Debug.Log("No usable item");
-                    break;
-            }
-        }
-
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        public void RpcSetShieldColor(bool active)
-        {
-            fillImage.color = active ? Color.cyan : (Object.HasInputAuthority ? _ownColor : _enemyColor);
-        }
-
         public void TakeDamage(float amount)
         {
-            Debug.Log($"TakeDamage called, amount = {amount}, HasStateAuthority = {HasStateAuthority}");
             if (HasStateAuthority)
             {
                 CurrentHealth = Mathf.Max(0, CurrentHealth - amount);
-                Debug.Log("New health: " + CurrentHealth);
             }
         }
         
@@ -139,7 +84,6 @@ namespace BattleArena.Parameters
             if (HasStateAuthority)
             {
                 CurrentHealth = Mathf.Min(_maxHealth, CurrentHealth + amount);
-                //_networkInventory.Items[1].Count = 0;
             }
         }
     }
