@@ -1,6 +1,6 @@
 using BattleArena.InputSynchronize;
 using BattleArena.Movement;
-using BattleArena.Inventory;
+using BattleArena.UI;
 using Fusion;
 using System;
 using System.Reflection;
@@ -42,18 +42,17 @@ namespace BattleArena.Parameters
 
         private void Update()
         {
-            if (CurrentHealth <= 0)
+            if (!IsPlayerDead && CurrentHealth <= 0)
             {
-                gameObject.SetActive(false);
                 IsPlayerDead = true;
                 DeathCount ++;
                 GameBootstrapper.Instance.RespawnPlayer(this);
+                Rpc_SetAliveState(false);
             }
             else
             {
                 float normalizedHealth = CurrentHealth / _maxHealth;
                 FillImage.fillAmount = Mathf.Clamp01(normalizedHealth);
-                gameObject.SetActive(true);
             }
         }
         public override void Spawned()
@@ -67,8 +66,30 @@ namespace BattleArena.Parameters
             }
 
             FillImage.color = Object.HasInputAuthority ? _ownColor : _enemyColor;
-
             PlayerName.text = PlayerNickname;
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        public void Rpc_SetAliveState(bool isAlive)
+        {
+            SetAliveState(isAlive);
+        }
+
+        public void SetAliveState(bool isAlive)
+        {
+            // Наприклад, візуальні об'єкти моделі
+            var renderers = GetComponentsInChildren<Renderer>();
+            foreach (var r in renderers)
+                r.enabled = isAlive;
+
+            var colliders = GetComponentsInChildren<Collider>();
+            foreach (var c in colliders)
+                c.enabled = isAlive;
+            var controller = GetComponent<NetworkCharacterController>();
+            if (controller != null)
+                controller.enabled = isAlive;
+            transform.position = Vector3.down * 100f;
+            _playerMovement.enabled = isAlive;
         }
 
         public void TakeDamage(float amount)

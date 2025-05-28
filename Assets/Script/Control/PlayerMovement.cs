@@ -8,6 +8,9 @@ namespace BattleArena.Movement
 {
     public class PlayerMovement : NetworkBehaviour
     {
+        [Networked]
+        public Vector3 PlayerSpawnPosition { get; set; }
+
         public PlayerScriptableObject PlayerSettings;
 
         private NetworkCharacterController _cc;

@@ -2335,7 +2335,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -2501,6 +2501,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99bb4baa6a0b3714b917ea0333efdffe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _PlayerSpawnPosition: {x: 0, y: 0, z: 0}
   PlayerSettings: {fileID: 11400000, guid: 5bdb0ecbca01e074386afd0f1076b30f, type: 2}
 --- !u!114 &1191757477422304791
 MonoBehaviour:
@@ -2517,6 +2518,7 @@ MonoBehaviour:
   _CurrentHealth: 0
   _PlayerNickname: 
   _IsPlayerDead: 0
+  _DeathCount: 0
   FillImage: {fileID: 4971567717280966604}
   PlayerName: {fileID: 2050467763724890499}
   ItemSettings: {fileID: 11400000, guid: de73ac9fb239d81429fb3239e0e3e173, type: 2}

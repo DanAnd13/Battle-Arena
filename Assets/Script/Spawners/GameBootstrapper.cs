@@ -4,11 +4,11 @@ using System;
 using UnityEngine;
 using BattleArena.Parameters;
 using BattleArena.Movement;
+using BattleArena.UI;
 using System.Collections.Generic;
 using System.Collections;
 using BattleArena.Inventory;
 using System.Linq;
-using UnityEditor;
 
 namespace BattleArena.Loader
 {
@@ -23,6 +23,7 @@ namespace BattleArena.Loader
         public string enteredWeponName;
         [HideInInspector]
         public string enteredItem;
+        public static GameBootstrapper Instance { get; private set; }
 
         private GameObject _bulletPref;
         private GameObject _playerPref;
@@ -31,8 +32,7 @@ namespace BattleArena.Loader
         private int _preloadCount = 30;
         private NetworkRunner _runner;
         private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new();
-        public Dictionary<PlayerRef, string> _playerWeapons = new();
-        public static GameBootstrapper Instance { get; private set; }
+        private float _respawnDelay = 5f;
 
 
         private void Awake()
@@ -87,7 +87,9 @@ namespace BattleArena.Loader
 
         public void RespawnPlayer(PlayerHealth playerHealth)
         {
-            StartCoroutine(RespawnAfterDelay(5f, playerHealth));
+            if (!playerHealth.Object.HasStateAuthority) return;
+
+            StartCoroutine(RespawnAfterDelay(_respawnDelay, playerHealth));
         }
 
         private IEnumerator RespawnAfterDelay(float delay, PlayerHealth playerHealth)
@@ -95,12 +97,14 @@ namespace BattleArena.Loader
             yield return new WaitForSeconds(delay);
 
             Vector3 spawnPoint = GetRandomSpawnpoint();
-            playerHealth.transform.position = spawnPoint;
 
             playerHealth.IsPlayerDead = false;
             playerHealth.CurrentHealth = 100;
-            playerHealth.gameObject.SetActive(true);
+            playerHealth.Rpc_SetAliveState(true);
+            var controller = playerHealth.GetComponent<NetworkCharacterController>();
+            controller.Teleport(spawnPoint);
         }
+
 
         public void SpawnPlayer(NetworkRunner runner, PlayerRef player)
         {
@@ -126,7 +130,6 @@ namespace BattleArena.Loader
             if (runner.IsServer)
             {
                 NetworkObject playerInstance = _spawnedCharacters[player];
-
                 //string weaponName = _playerWeapons.ContainsKey(player) ? _playerWeapons[player] : "FastWeapon";
                 InventoryItem weaponName = playerInstance.GetComponent<NetworkedInventory>().GetItem(0);
                 NetworkObject weaponInstance = null;
@@ -165,7 +168,6 @@ namespace BattleArena.Loader
                 runner.Despawn(networkObject);
                 _spawnedCharacters.Remove(player);
             }
-            _playerWeapons.Remove(player);
         }
 
         public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
