@@ -20,9 +20,8 @@ namespace BattleArena.Loader
         [HideInInspector]
         public bool IsPalyerLoading = true;
         [HideInInspector]
-        public string enteredWeponName;
-        [HideInInspector]
-        public string enteredItem;
+        public Dictionary<PlayerRef, NetworkObject> SpawnedCharacters = new();
+
         public static GameBootstrapper Instance { get; private set; }
 
         private GameObject _bulletPref;
@@ -30,9 +29,9 @@ namespace BattleArena.Loader
         private GameObject _fastWeaponPref;
         private GameObject _powerWeaponPref;
         private int _preloadCount = 30;
-        private NetworkRunner _runner;
-        private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new();
         private float _respawnDelay = 5f;
+        private NetworkRunner _runner;
+        private GameManager _gameManager;
 
 
         private void Awake()
@@ -41,6 +40,8 @@ namespace BattleArena.Loader
             _playerPref = Resources.Load<GameObject>("Player");
             _fastWeaponPref = Resources.Load<GameObject>("FastWeapon");
             _powerWeaponPref = Resources.Load<GameObject>("PowerWeapon");
+
+            _gameManager = GetComponent<GameManager>();
 
             Instance = this;
         }
@@ -77,11 +78,12 @@ namespace BattleArena.Loader
         {
             if (_runner.IsServer)
             {
-                foreach (var palyer in _spawnedCharacters.ToList())
+                foreach (var palyer in SpawnedCharacters.ToList())
                 {
                     var playerRef = palyer.Key;
                     LoadPlayersPref(_runner, playerRef);
                 }
+                _gameManager.TryStartMatch();
             }
         }
 
@@ -105,6 +107,13 @@ namespace BattleArena.Loader
             controller.Teleport(spawnPoint);
         }
 
+        public void RespawnAllPlayers()
+        {
+            foreach (var player in SpawnedCharacters.Keys.ToList())
+            {
+                SpawnPlayer(_runner, player);
+            }
+        }
 
         public void SpawnPlayer(NetworkRunner runner, PlayerRef player)
         {
@@ -113,7 +122,32 @@ namespace BattleArena.Loader
                 // Спавнимо гравця за межами карти
                 Vector3 spawnPosition = GetRandomSpawnpoint();
                 NetworkObject playerInstance = runner.Spawn(_playerPref, spawnPosition, Quaternion.identity, player);
-                _spawnedCharacters.Add(player, playerInstance);
+                if (SpawnedCharacters.ContainsKey(player))
+                {
+                    SpawnedCharacters[player] = playerInstance;
+                }
+                else
+                {
+                    SpawnedCharacters.Add(player, playerInstance);
+                }
+                playerInstance.GetComponent<NetworkedInventory>().ClearInventory();
+            }
+        }
+
+        public void DespawnAllPlayers()
+        {
+            foreach (var player in SpawnedCharacters.Keys.ToList())
+            {
+                DespawnPlayer(_runner, player);
+                SpawnedCharacters[player] = null;
+            }
+        }
+        
+        public void DespawnPlayer(NetworkRunner runner, PlayerRef player) 
+        {
+            if (SpawnedCharacters.TryGetValue(player, out NetworkObject networkObject))
+            {
+                runner.Despawn(networkObject);
             }
         }
 
@@ -129,8 +163,8 @@ namespace BattleArena.Loader
         {
             if (runner.IsServer)
             {
-                NetworkObject playerInstance = _spawnedCharacters[player];
-                //string weaponName = _playerWeapons.ContainsKey(player) ? _playerWeapons[player] : "FastWeapon";
+                NetworkObject playerInstance = SpawnedCharacters[player];
+
                 InventoryItem weaponName = playerInstance.GetComponent<NetworkedInventory>().GetItem(0);
                 NetworkObject weaponInstance = null;
                 if (weaponName.Name == InventoryItem.NamesOfItems.FastWeapon)
@@ -157,17 +191,8 @@ namespace BattleArena.Loader
 
         public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
         {
-            /*if (runner.LocalPlayer == player)
-            {
-                IsPlayerJoin = false;
-                Inventory.ClearInventory();
-            }*/
-
-            if (_spawnedCharacters.TryGetValue(player, out NetworkObject networkObject))
-            {
-                runner.Despawn(networkObject);
-                _spawnedCharacters.Remove(player);
-            }
+            DespawnPlayer(runner, player);
+            SpawnedCharacters.Remove(player);
         }
 
         public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
