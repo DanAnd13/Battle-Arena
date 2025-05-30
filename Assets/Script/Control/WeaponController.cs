@@ -59,7 +59,8 @@ namespace BattleArena.Movement
                     bullet.transform.rotation = Quaternion.LookRotation(Barrel.forward);
 
                     var bulletCtrl = bullet.GetComponent<BulletController>();
-                    bulletCtrl.Init(Barrel.forward, WeaponSettings.BulletSpeed, WeaponSettings.DamageByShot, 1f, _pool);
+                    bulletCtrl.Init(Barrel.forward, WeaponSettings.BulletSpeed, WeaponSettings.DamageByShot, 2f, _pool);
+                    bulletCtrl.Shooter = _playerObject.GetComponent<PlayerHealth>();
 
                     RPC_PlayParticle();
 

@@ -23,6 +23,8 @@ namespace BattleArena.Parameters
 
         [Networked]
         public int DeathCount { get; set; }
+        [Networked]
+        public int KillCount { get; set; }
 
         public Image FillImage;
         public TextMeshProUGUI PlayerName;
@@ -42,23 +44,16 @@ namespace BattleArena.Parameters
 
         private void Update()
         {
-            if (!IsPlayerDead && CurrentHealth <= 0)
-            {
-                IsPlayerDead = true;
-                DeathCount ++;
-                GameBootstrapper.Instance.RespawnPlayer(this);
-                Rpc_SetAliveState(false);
-            }
-            else
-            {
-                float normalizedHealth = CurrentHealth / _maxHealth;
-                FillImage.fillAmount = Mathf.Clamp01(normalizedHealth);
-            }
+            float normalizedHealth = CurrentHealth / _maxHealth;
+            FillImage.fillAmount = Mathf.Clamp01(normalizedHealth);
         }
+
         public override void Spawned()
         {
             _maxHealth = _playerSettings != null ? _playerSettings.MaxHealth : 100;
             IsPlayerDead = false;
+            DeathCount = 0;
+            KillCount = 0;
             if (HasStateAuthority)
             {
                 CurrentHealth = _maxHealth;
@@ -105,6 +100,22 @@ namespace BattleArena.Parameters
             if (HasStateAuthority)
             {
                 CurrentHealth = Mathf.Min(_maxHealth, CurrentHealth + amount);
+            }
+        }
+
+        public void PlayerDeath()
+        {
+            IsPlayerDead = true;
+            DeathCount++;
+            GameBootstrapper.Instance.RespawnPlayer(this);
+            Rpc_SetAliveState(false);
+        }
+
+        public void RegisterKill(PlayerHealth killer)
+        {
+            if (killer != null && killer.HasStateAuthority)
+            {
+                killer.KillCount++;
             }
         }
     }

@@ -6,6 +6,8 @@ namespace BattleArena.Movement
 {
     public class BulletController : NetworkBehaviour
     {
+        public PlayerHealth Shooter { get; set; }
+
         private float _speed;
         private float _damage;
         private Vector3 _direction;
@@ -22,19 +24,23 @@ namespace BattleArena.Movement
             var health = other.GetComponent<PlayerHealth>();
             if (health != null)
             {
-                RPC_ApplyDamage(health.Object, _damage);
+                RPC_ApplyDamage(health, _damage);
                 ReturnToPool();
             }
         }
 
        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_ApplyDamage(NetworkObject targetPlayer, float damage)
+        private void RPC_ApplyDamage(PlayerHealth health, float damage)
         {
-      
-            var health = targetPlayer.GetComponent<PlayerHealth>();
             if (health != null)
             {
                 health.TakeDamage(damage);
+                if (!health.IsPlayerDead && health.CurrentHealth <= 0)
+                {
+                    health.PlayerDeath();
+                    Shooter.KillCount++;
+                    Debug.Log(Shooter.PlayerName.text + " " + Shooter.KillCount);
+                }
             }
             else
             {
