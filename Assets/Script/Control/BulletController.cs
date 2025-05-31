@@ -38,8 +38,8 @@ namespace BattleArena.Movement
                 if (!health.IsPlayerDead && health.CurrentHealth <= 0)
                 {
                     health.PlayerDeath();
-                    Shooter.KillCount++;
-                    Debug.Log(Shooter.PlayerName.text + " " + Shooter.KillCount);
+                    Shooter.AddKill();
+                    Debug.Log(Shooter.PlayerNameTMP.text + " " + Shooter.KillCount);
                 }
             }
             else

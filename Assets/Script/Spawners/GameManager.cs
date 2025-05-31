@@ -1,5 +1,6 @@
 ﻿using BattleArena.Loader;
 using BattleArena.Parameters;
+using BattleArena.UI;
 using Fusion;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,7 +11,8 @@ public class GameManager : MonoBehaviour
     public float RemainingTime;
     [HideInInspector]
     public float matchDuration;
-    //public TextMeshProUGUI timerText;
+    [HideInInspector]
+    public UIManager UI;
 
     private Dictionary<PlayerRef, PlayerHealth> players = new();
     private bool _matchEnded = false;
@@ -18,7 +20,8 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        matchDuration = 15f;
+        matchDuration = 100f;
+        UI = GetComponent<UIManager>();
     }
 
     private void Update()
@@ -27,19 +30,25 @@ public class GameManager : MonoBehaviour
             return;
         
         RemainingTime -= Time.deltaTime;
-        Debug.Log(RemainingTime);
-            //UpdateTimerUI();
+        UI.UpdateTimerUI(RemainingTime);
 
         if (RemainingTime <= 0f)
         {
             _matchEnded = true;
             _matchStarted = false;
+            UI.TimerTMP.gameObject.SetActive(false);
             GetPlayersPoints();
             GetWinner();
-            GameBootstrapper.Instance.DespawnAllPlayers();
-            GameBootstrapper.Instance.RespawnAllPlayers();
+            
 
         }
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void Rpc_StartMatchUI()
+    {
+        UI.TimerTMP.gameObject.SetActive(true);
+        UI.GetListOfConnectedPlayers(); // можливо, перенеси в окремий RPC, якщо потрібно
     }
 
     public void TryStartMatch()
@@ -48,18 +57,10 @@ public class GameManager : MonoBehaviour
 
         Debug.Log("Match Started!");
         _matchStarted = true;
+        _matchEnded = false;
         RemainingTime = matchDuration;
+        Rpc_StartMatchUI();
     }
-
-    /*private void UpdateTimerUI()
-    {
-        if (timerText != null)
-        {
-            int minutes = Mathf.FloorToInt(RemainingTime / 60f);
-            int seconds = Mathf.FloorToInt(RemainingTime % 60f);
-            timerText.text = $"{minutes:00}:{seconds:00}";
-        }
-    }*/
 
     private void GetPlayersPoints()
     {
@@ -90,11 +91,17 @@ public class GameManager : MonoBehaviour
 
         if (winner != null)
         {
-            Debug.Log($"🏆 Winner is {winner.PlayerNickname} with {winner.KillCount} kills!");
+            StartCoroutine(OpenResultWindow(winner.PlayerNickname, winner.KillCount));
         }
-        else
-        {
-            Debug.Log("❗ No winner - all kill counts are 0.");
-        }
+    }
+
+    private IEnumerator OpenResultWindow(string name, int points)
+    {
+        UI.GameResultWindow.SetActive(true);
+        UI.UpdateGameResults(name, points);
+        yield return new WaitForSeconds(5f);
+        UI.GameResultWindow.SetActive(false);
+        GameBootstrapper.Instance.DespawnAllPlayers();
+        GameBootstrapper.Instance.RespawnAllPlayers();
     }
 }

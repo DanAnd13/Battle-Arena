@@ -2519,8 +2519,9 @@ MonoBehaviour:
   _PlayerNickname: 
   _IsPlayerDead: 0
   _DeathCount: 0
+  _KillCount: 0
   FillImage: {fileID: 4971567717280966604}
-  PlayerName: {fileID: 2050467763724890499}
+  PlayerNameTMP: {fileID: 2050467763724890499}
   ItemSettings: {fileID: 11400000, guid: de73ac9fb239d81429fb3239e0e3e173, type: 2}
 --- !u!114 &7592256479825778388
 MonoBehaviour:
@@ -2559,10 +2560,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 458092000e7506a43ae3939ad1e6eefd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SelectionUI: {fileID: 1654925416922364977}
+  SelectionWindow: {fileID: 1654925416922364977}
   SaveInventoryButton: {fileID: 5917548656804376359}
-  WeaponDropdawn: {fileID: 5455476750503198665}
-  ItemDropdawn: {fileID: 9116226952772539778}
+  WeaponDropdawnTMP: {fileID: 5455476750503198665}
+  ItemDropdawnTMP: {fileID: 9116226952772539778}
 --- !u!1 &6185558158207054051
 GameObject:
   m_ObjectHideFlags: 0

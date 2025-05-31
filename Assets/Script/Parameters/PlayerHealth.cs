@@ -26,8 +26,9 @@ namespace BattleArena.Parameters
         [Networked]
         public int KillCount { get; set; }
 
+        public event Action<string, int> OnKillCountChanged;
         public Image FillImage;
-        public TextMeshProUGUI PlayerName;
+        public TextMeshProUGUI PlayerNameTMP;
         public ItemScriptableObject ItemSettings;
 
         private PlayerMovement _playerMovement;
@@ -61,7 +62,7 @@ namespace BattleArena.Parameters
             }
 
             FillImage.color = Object.HasInputAuthority ? _ownColor : _enemyColor;
-            PlayerName.text = PlayerNickname;
+            PlayerNameTMP.text = PlayerNickname;
         }
 
         [Rpc(RpcSources.All, RpcTargets.All)]
@@ -109,6 +110,12 @@ namespace BattleArena.Parameters
             DeathCount++;
             GameBootstrapper.Instance.RespawnPlayer(this);
             Rpc_SetAliveState(false);
+        }
+
+        public void AddKill()
+        {
+            KillCount++;
+            OnKillCountChanged?.Invoke(PlayerNickname, KillCount);
         }
 
         public void RegisterKill(PlayerHealth killer)

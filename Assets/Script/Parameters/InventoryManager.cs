@@ -14,10 +14,10 @@ namespace BattleArena.Inventory
 {
     public class InventoryManager : NetworkBehaviour
     {
-        public GameObject SelectionUI;
+        public GameObject SelectionWindow;
         public Button SaveInventoryButton;
-        public TextMeshProUGUI WeaponDropdawn;
-        public TextMeshProUGUI ItemDropdawn;
+        public TextMeshProUGUI WeaponDropdawnTMP;
+        public TextMeshProUGUI ItemDropdawnTMP;
 
 
         private NetworkedInventory _inventory;
@@ -51,14 +51,14 @@ namespace BattleArena.Inventory
             }
         }
 
-        public void ShowUI(bool value) => SelectionUI.SetActive(value);
+        public void ShowUI(bool value) => SelectionWindow.SetActive(value);
 
         public void SelectItem()
         {
             InventoryItem.NamesOfItems weaponName, itemName;
 
-            Enum.TryParse(WeaponDropdawn.text, out weaponName);
-            Enum.TryParse(ItemDropdawn.text, out itemName);
+            Enum.TryParse(WeaponDropdawnTMP.text, out weaponName);
+            Enum.TryParse(ItemDropdawnTMP.text, out itemName);
 
             RPC_SetInventory(weaponName, itemName);
             ShowUI(false);

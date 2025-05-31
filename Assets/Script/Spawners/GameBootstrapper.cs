@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections;
 using BattleArena.Inventory;
 using System.Linq;
+using Unity.VisualScripting;
 
 namespace BattleArena.Loader
 {
@@ -32,7 +33,6 @@ namespace BattleArena.Loader
         private float _respawnDelay = 5f;
         private NetworkRunner _runner;
         private GameManager _gameManager;
-
 
         private void Awake()
         {
@@ -192,6 +192,7 @@ namespace BattleArena.Loader
         public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
         {
             DespawnPlayer(runner, player);
+            _gameManager.UI.RemovePlayerFromList(player);
             SpawnedCharacters.Remove(player);
         }
 
