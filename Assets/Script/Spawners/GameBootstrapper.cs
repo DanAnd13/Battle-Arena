@@ -4,10 +4,10 @@ using System;
 using UnityEngine;
 using BattleArena.Parameters;
 using BattleArena.Movement;
+using BattleArena.Inventory;
 using BattleArena.UI;
 using System.Collections.Generic;
 using System.Collections;
-using BattleArena.Inventory;
 using System.Linq;
 using Unity.VisualScripting;
 
@@ -29,6 +29,7 @@ namespace BattleArena.Loader
         private GameObject _playerPref;
         private GameObject _fastWeaponPref;
         private GameObject _powerWeaponPref;
+        private GameObject _gameManagerPref;
         private int _preloadCount = 30;
         private float _respawnDelay = 5f;
         private NetworkRunner _runner;
@@ -40,14 +41,18 @@ namespace BattleArena.Loader
             _playerPref = Resources.Load<GameObject>("Player");
             _fastWeaponPref = Resources.Load<GameObject>("FastWeapon");
             _powerWeaponPref = Resources.Load<GameObject>("PowerWeapon");
-
-            _gameManager = GetComponent<GameManager>();
+            _gameManagerPref = Resources.Load<GameObject>("GameManager");
 
             Instance = this;
         }
         public void SetRunner(NetworkRunner runner)
         {
             _runner = runner;
+            if (_runner.IsServer)
+            {
+                var manager = _runner.Spawn(_gameManagerPref, Vector3.zero, Quaternion.identity, _runner.LocalPlayer);
+                _gameManager = manager.GetComponent<GameManager>();
+            }
             StartCoroutine(WaitForRunnerAndPreload());
         }
 
@@ -105,6 +110,7 @@ namespace BattleArena.Loader
             playerHealth.Rpc_SetAliveState(true);
             var controller = playerHealth.GetComponent<NetworkCharacterController>();
             controller.Teleport(spawnPoint);
+            playerHealth.GetComponent<InventoryManager>().ResetItemAmount();
         }
 
         public void RespawnAllPlayers()
@@ -129,6 +135,7 @@ namespace BattleArena.Loader
                 else
                 {
                     SpawnedCharacters.Add(player, playerInstance);
+                    _gameManager.Rpc_AnnounceNewPlayer(player, playerInstance);
                 }
                 playerInstance.GetComponent<NetworkedInventory>().ClearInventory();
             }
@@ -147,6 +154,7 @@ namespace BattleArena.Loader
         {
             if (SpawnedCharacters.TryGetValue(player, out NetworkObject networkObject))
             {
+                UIManager.Instance.RemovePlayerFromList(networkObject);
                 runner.Despawn(networkObject);
             }
         }
@@ -192,7 +200,6 @@ namespace BattleArena.Loader
         public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
         {
             DespawnPlayer(runner, player);
-            _gameManager.UI.RemovePlayerFromList(player);
             SpawnedCharacters.Remove(player);
         }
 

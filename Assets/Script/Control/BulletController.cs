@@ -39,7 +39,6 @@ namespace BattleArena.Movement
                 {
                     health.PlayerDeath();
                     Shooter.AddKill();
-                    Debug.Log(Shooter.PlayerNameTMP.text + " " + Shooter.KillCount);
                 }
             }
             else

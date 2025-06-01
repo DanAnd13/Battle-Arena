@@ -117,13 +117,5 @@ namespace BattleArena.Parameters
             KillCount++;
             OnKillCountChanged?.Invoke(PlayerNickname, KillCount);
         }
-
-        public void RegisterKill(PlayerHealth killer)
-        {
-            if (killer != null && killer.HasStateAuthority)
-            {
-                killer.KillCount++;
-            }
-        }
     }
 }

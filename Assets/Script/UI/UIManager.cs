@@ -16,12 +16,14 @@ namespace BattleArena.UI
         public GameObject ConnectedPlayerList;
         public TextMeshProUGUI GameResultTMP;
         public TextMeshProUGUI TimerTMP;
+        public TextMeshProUGUI ConnectedPlayerTMP;
+        public static UIManager Instance { get; private set; }
 
-        private TextMeshProUGUI _connectedPlayerTMP;
+        private Dictionary<string, int> _connectedPlayers = new();
 
         private void Awake()
         {
-            _connectedPlayerTMP = Resources.Load<TextMeshProUGUI>("ConnectedPlayerTMP");
+            Instance = this;
         }
 
         private void Update()
@@ -29,6 +31,7 @@ namespace BattleArena.UI
             if (GameBootstrapper.Instance.IsPalyerLoading)
             {
                 LobbyWindow.SetActive(true);
+                ConnectedPlayerList.SetActive(false);
                 TimerTMP.gameObject.SetActive(false);
             }
             else
@@ -52,19 +55,23 @@ namespace BattleArena.UI
             GameResultTMP.text = $"Winner is {winnerName}!\nPoints scored: {winnerPoints}";
         }
 
-        public void GetListOfConnectedPlayers()
+        public void GetListOfConnectedPlayers(Dictionary<PlayerRef, NetworkObject> spawnedCharacters)
         {
-            foreach (var playerEntry in GameBootstrapper.Instance.SpawnedCharacters)
+            _connectedPlayers.Clear();
+
+            foreach (var playerEntry in spawnedCharacters)
             {
                 var networkObj = playerEntry.Value;
                 var playerHealth = networkObj.GetComponent<PlayerHealth>();
 
-                var textInstance = Instantiate(_connectedPlayerTMP, Vector3.zero, Quaternion.identity, ConnectedPlayerList.transform);
-                textInstance.name = $"{playerHealth.PlayerNickname}TMP";
-                textInstance.text = $"{playerHealth.PlayerNickname}: {playerHealth.KillCount}";
-
-                SubscribeToPlayer(playerHealth);
+                if (!_connectedPlayers.ContainsKey(playerHealth.PlayerNickname))
+                {
+                    _connectedPlayers[playerHealth.PlayerNickname] = playerHealth.KillCount;
+                    SubscribeToPlayer(playerHealth);
+                }
             }
+
+            UpdatePlayerListDisplay();
         }
 
         public void SubscribeToPlayer(PlayerHealth player)
@@ -74,26 +81,31 @@ namespace BattleArena.UI
 
         private void UpdateSinglePlayerScore(string nickname, int kills)
         {
-            Transform child = ConnectedPlayerList.transform.Find($"{nickname}TMP");
-            if (child != null)
+            if (_connectedPlayers.ContainsKey(nickname))
             {
-                child.GetComponent<TextMeshProUGUI>().text = $"{nickname}: {kills}";
+                _connectedPlayers[nickname] = kills;
+                UpdatePlayerListDisplay();
             }
         }
 
-        public void RemovePlayerFromList(PlayerRef player)
+        public void RemovePlayerFromList(NetworkObject player)
         {
-            for (int i = 0; i < ConnectedPlayerList.transform.childCount; i++)
+            string playerName = player.GetComponent<PlayerHealth>().PlayerNickname;
+            if (_connectedPlayers.ContainsKey(playerName))
             {
-                var playerInfo = ConnectedPlayerList.transform.GetChild(i);
-                var playerPref = GameBootstrapper.Instance.SpawnedCharacters[player];
-                string playerName = playerPref.GetComponent<PlayerHealth>().PlayerNickname;
-                if (playerInfo.name == $"{playerName}TMP")
-                {
-                    Destroy(playerInfo.gameObject);
-                }
+                _connectedPlayers.Remove(playerName);
+                UpdatePlayerListDisplay();
             }
+        }
 
+        private void UpdatePlayerListDisplay()
+        {
+            ConnectedPlayerTMP.text = string.Empty;
+
+            foreach (var entry in _connectedPlayers)
+            {
+                ConnectedPlayerTMP.text += $"{entry.Key}: {entry.Value}\n";
+            }
         }
     }
 }
