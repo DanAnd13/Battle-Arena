@@ -14,19 +14,12 @@ namespace BattleArena.Parameters
 {
     public class PlayerHealth : NetworkBehaviour
     {
-        [Networked]
-        public float CurrentHealth { get; set; }
-        [Networked]
-        public string PlayerNickname { get; private set; }
-        [Networked]
-        public bool IsPlayerDead { get; set; }
+        [Networked] public float CurrentHealth { get; set; }
+        [Networked] public string PlayerNickname { get; private set; }
+        [Networked] public bool IsPlayerDead { get; set; }
+        [Networked] public int DeathCount { get; set; }
+        [Networked] public int KillCount { get; set; }
 
-        [Networked]
-        public int DeathCount { get; set; }
-        [Networked]
-        public int KillCount { get; set; }
-
-        public event Action<string, int> OnKillCountChanged;
         public Image FillImage;
         public TextMeshProUGUI PlayerNameTMP;
         public ItemScriptableObject ItemSettings;
@@ -114,8 +107,17 @@ namespace BattleArena.Parameters
 
         public void AddKill()
         {
-            KillCount++;
-            OnKillCountChanged?.Invoke(PlayerNickname, KillCount);
+            if (HasStateAuthority)
+            {
+                KillCount++;
+                Rpc_UpdateUI();
+            }
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        public void Rpc_UpdateUI()
+        {
+            UIManager.Instance.UpdateSinglePlayerScore(PlayerNickname, KillCount);
         }
     }
 }

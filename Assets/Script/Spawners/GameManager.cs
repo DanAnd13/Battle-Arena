@@ -11,7 +11,7 @@ namespace BattleArena.Loader
     public class GameManager : NetworkBehaviour
     {
         [Networked] public float RemainingTime { get; set; }
-        //[Networked] public NetworkDictionary<PlayerRef, NetworkObject> SpawnedCharacters => default;
+        [Networked] public NetworkDictionary<PlayerRef, NetworkObject> SpawnedCharacters => default;
         [HideInInspector]
         public float matchDuration;
 
@@ -21,17 +21,7 @@ namespace BattleArena.Loader
 
         public override void Spawned()
         {
-            matchDuration = 100f;
-        }
-
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        public void Rpc_AnnounceNewPlayer(PlayerRef playerRef, NetworkObject playerObject)
-        {
-            if (!GameBootstrapper.Instance.SpawnedCharacters.ContainsKey(playerRef)) 
-            {
-                GameBootstrapper.Instance.SpawnedCharacters[playerRef] = playerObject;
-            }
-            Rpc_UpdatePlayerList();
+            matchDuration = 30f;
         }
 
         public override void FixedUpdateNetwork()
@@ -66,12 +56,15 @@ namespace BattleArena.Loader
         {
             if (_matchStarted) return;
 
-            Debug.Log("Match Started!");
-            _matchStarted = true;
-            _matchEnded = false;
-            RemainingTime = matchDuration;
-            Rpc_StartMatchUI(true);
-            Rpc_UpdatePlayerList();
+            if (HasStateAuthority)
+            {
+                Debug.Log("Match Started!");
+                _matchStarted = true;
+                _matchEnded = false;
+                RemainingTime = matchDuration;
+                Rpc_StartMatchUI(true);
+                Rpc_UpdatePlayerList();
+            }
         }
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
@@ -84,13 +77,27 @@ namespace BattleArena.Loader
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         public void Rpc_UpdatePlayerList()
         {
-            UIManager.Instance.GetListOfConnectedPlayers(GameBootstrapper.Instance.SpawnedCharacters);
+            UIManager.Instance.GetListOfConnectedPlayers(SpawnedCharacters);
+        }
+
+        public void WriteNewPlayer(PlayerRef player, NetworkObject playerInstance)
+        {
+            if (!HasStateAuthority) return;
+
+            if (SpawnedCharacters.ContainsKey(player))
+            {
+                SpawnedCharacters.Set(player, playerInstance);
+            }
+            else
+            {
+                SpawnedCharacters.Add(player, playerInstance);
+            }
         }
 
         private void GetPlayersPoints()
         {
             players.Clear();
-            foreach (var player in GameBootstrapper.Instance.SpawnedCharacters)
+            foreach (var player in SpawnedCharacters)
             {
                 PlayerHealth health = player.Value.GetComponent<PlayerHealth>();
                 if (health != null)

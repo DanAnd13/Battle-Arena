@@ -47,7 +47,6 @@ namespace BattleArena.Movement
             }
         }
 
-
         public void Init(Vector3 direction, float speed, float damage, float lifeTime, ObjectPool pool)
         {
             _direction = direction.normalized;

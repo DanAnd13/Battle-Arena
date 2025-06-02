@@ -20,8 +20,6 @@ namespace BattleArena.Loader
         public Transform[] SpawnPoints;
         [HideInInspector]
         public bool IsPalyerLoading = true;
-        [HideInInspector]
-        public Dictionary<PlayerRef, NetworkObject> SpawnedCharacters = new();
 
         public static GameBootstrapper Instance { get; private set; }
 
@@ -83,7 +81,7 @@ namespace BattleArena.Loader
         {
             if (_runner.IsServer)
             {
-                foreach (var palyer in SpawnedCharacters.ToList())
+                foreach (var palyer in _gameManager.SpawnedCharacters.ToList())
                 {
                     var playerRef = palyer.Key;
                     LoadPlayersPref(_runner, playerRef);
@@ -115,8 +113,10 @@ namespace BattleArena.Loader
 
         public void RespawnAllPlayers()
         {
-            foreach (var player in SpawnedCharacters.Keys.ToList())
+            foreach (var key in _gameManager.SpawnedCharacters)
             {
+                var player = key.Key;
+                DespawnPlayer(_runner, player);
                 SpawnPlayer(_runner, player);
             }
         }
@@ -128,34 +128,33 @@ namespace BattleArena.Loader
                 // Спавнимо гравця за межами карти
                 Vector3 spawnPosition = GetRandomSpawnpoint();
                 NetworkObject playerInstance = runner.Spawn(_playerPref, spawnPosition, Quaternion.identity, player);
-                if (SpawnedCharacters.ContainsKey(player))
-                {
-                    SpawnedCharacters[player] = playerInstance;
-                }
-                else
-                {
-                    SpawnedCharacters.Add(player, playerInstance);
-                    _gameManager.Rpc_AnnounceNewPlayer(player, playerInstance);
-                }
+
+                _gameManager.WriteNewPlayer(player, playerInstance);
                 playerInstance.GetComponent<NetworkedInventory>().ClearInventory();
             }
         }
 
         public void DespawnAllPlayers()
         {
-            foreach (var player in SpawnedCharacters.Keys.ToList())
+            foreach (var key in _gameManager.SpawnedCharacters)
             {
+                var player = key.Key;
                 DespawnPlayer(_runner, player);
-                SpawnedCharacters[player] = null;
+               _gameManager.SpawnedCharacters.Set(player, null);
             }
         }
         
         public void DespawnPlayer(NetworkRunner runner, PlayerRef player) 
         {
-            if (SpawnedCharacters.TryGetValue(player, out NetworkObject networkObject))
+            if (_gameManager.SpawnedCharacters.ContainsKey(player))
             {
-                UIManager.Instance.RemovePlayerFromList(networkObject);
-                runner.Despawn(networkObject);
+                NetworkObject networkObject = _gameManager.SpawnedCharacters[player];
+
+                if (networkObject != null)
+                {
+                    UIManager.Instance.RemovePlayerFromList(networkObject);
+                    runner.Despawn(networkObject);
+                }
             }
         }
 
@@ -171,7 +170,7 @@ namespace BattleArena.Loader
         {
             if (runner.IsServer)
             {
-                NetworkObject playerInstance = SpawnedCharacters[player];
+                NetworkObject playerInstance = _gameManager.SpawnedCharacters[player];
 
                 InventoryItem weaponName = playerInstance.GetComponent<NetworkedInventory>().GetItem(0);
                 NetworkObject weaponInstance = null;
@@ -200,7 +199,7 @@ namespace BattleArena.Loader
         public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
         {
             DespawnPlayer(runner, player);
-            SpawnedCharacters.Remove(player);
+            _gameManager.SpawnedCharacters.Remove(player);
         }
 
         public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)

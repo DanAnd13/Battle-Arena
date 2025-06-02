@@ -55,7 +55,7 @@ namespace BattleArena.UI
             GameResultTMP.text = $"Winner is {winnerName}!\nPoints scored: {winnerPoints}";
         }
 
-        public void GetListOfConnectedPlayers(Dictionary<PlayerRef, NetworkObject> spawnedCharacters)
+        public void GetListOfConnectedPlayers(NetworkDictionary<PlayerRef, NetworkObject> spawnedCharacters)
         {
             _connectedPlayers.Clear();
 
@@ -67,23 +67,17 @@ namespace BattleArena.UI
                 if (!_connectedPlayers.ContainsKey(playerHealth.PlayerNickname))
                 {
                     _connectedPlayers[playerHealth.PlayerNickname] = playerHealth.KillCount;
-                    SubscribeToPlayer(playerHealth);
                 }
             }
 
             UpdatePlayerListDisplay();
         }
-
-        public void SubscribeToPlayer(PlayerHealth player)
-        {
-            player.OnKillCountChanged += UpdateSinglePlayerScore;
-        }
-
-        private void UpdateSinglePlayerScore(string nickname, int kills)
+        public void UpdateSinglePlayerScore(string nickname, int kills)
         {
             if (_connectedPlayers.ContainsKey(nickname))
             {
                 _connectedPlayers[nickname] = kills;
+                Debug.Log(_connectedPlayers[nickname] + " " + nickname);
                 UpdatePlayerListDisplay();
             }
         }
