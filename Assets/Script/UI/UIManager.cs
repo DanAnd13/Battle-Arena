@@ -17,6 +17,8 @@ namespace BattleArena.UI
         public TextMeshProUGUI GameResultTMP;
         public TextMeshProUGUI TimerTMP;
         public TextMeshProUGUI ConnectedPlayerTMP;
+        public TextMeshProUGUI ItemTMP;
+        public TextMeshProUGUI WeaponTMP;
         public static UIManager Instance { get; private set; }
 
         private Dictionary<string, int> _connectedPlayers = new();
@@ -33,6 +35,8 @@ namespace BattleArena.UI
                 LobbyWindow.SetActive(true);
                 ConnectedPlayerList.SetActive(false);
                 TimerTMP.gameObject.SetActive(false);
+                WeaponTMP.gameObject.SetActive(false);
+                ItemTMP.gameObject.SetActive(false);
             }
             else
             {
@@ -80,6 +84,12 @@ namespace BattleArena.UI
                 Debug.Log(_connectedPlayers[nickname] + " " + nickname);
                 UpdatePlayerListDisplay();
             }
+        }
+
+        public void UpdateInventory(string weaponName, string itemName, int itemCount)
+        {
+            WeaponTMP.text = weaponName;
+            ItemTMP.text = itemName + ": " + itemCount;
         }
 
         public void RemovePlayerFromList(NetworkObject player)

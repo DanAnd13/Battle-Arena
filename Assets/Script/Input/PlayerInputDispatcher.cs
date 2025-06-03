@@ -7,23 +7,26 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerInputDispatcher : NetworkBehaviour
+namespace BattleArena.InputSynchronize
 {
-    private InventoryManager _inventoryManager;
-    private WeaponController _weaponController;
-
-    public void Init(InventoryManager inventory, WeaponController weapon)
+    public class PlayerInputDispatcher : NetworkBehaviour
     {
-        _inventoryManager = inventory;
-        _weaponController = weapon;
-    }
+        private InventoryManager _inventoryManager;
+        private WeaponController _weaponController;
 
-    public override void FixedUpdateNetwork()
-    {
-        if (GetInput(out NetworkInputData data))
+        public void Init(InventoryManager inventory, WeaponController weapon)
         {
-            _weaponController?.HandleFireInput(data);
-            _inventoryManager?.HandleItemInput(data);
+            _inventoryManager = inventory;
+            _weaponController = weapon;
+        }
+
+        public override void FixedUpdateNetwork()
+        {
+            if (GetInput(out NetworkInputData data))
+            {
+                _weaponController?.HandleFireInput(data);
+                _inventoryManager?.HandleItemInput(data);
+            }
         }
     }
 }

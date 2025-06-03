@@ -13,8 +13,7 @@ namespace BattleArena.Movement
         private Vector3 _direction;
         private ObjectPool _objectPool;
 
-        [Networked] 
-        private TickTimer _lifeTime { get; set; }
+        [Networked] private TickTimer _lifeTime { get; set; }
 
         private void OnTriggerEnter(Collider other)
         {
@@ -25,8 +24,9 @@ namespace BattleArena.Movement
             if (health != null)
             {
                 RPC_ApplyDamage(health, _damage);
-                ReturnToPool();
+                //ReturnToPool();
             }
+            ReturnToPool();
         }
 
        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]

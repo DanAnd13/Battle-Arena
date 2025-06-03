@@ -12,6 +12,5 @@ namespace BattleArena.InputSynchronize
 
         public NetworkButtons buttons;
         public Vector3 Movement;
-        public Vector2 MouseDelta;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using BattleArena.InputSynchronize;
+using BattleArena.Loader;
 using BattleArena.Parameters;
 using Fusion;
 using System.Collections;
@@ -37,7 +38,7 @@ namespace BattleArena.Movement
 
         public override void Spawned()
         {
-            _shootParticle = FindFirstObjectByType<ParticleObjectPool>();
+            _shootParticle = GameBootstrapper.Instance.ShootEffects;
         }
 
         public void Init(NetworkObject playerObj, ObjectPool pool)

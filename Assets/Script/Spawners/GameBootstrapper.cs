@@ -5,6 +5,7 @@ using UnityEngine;
 using BattleArena.Parameters;
 using BattleArena.Movement;
 using BattleArena.Inventory;
+using BattleArena.InputSynchronize;
 using BattleArena.UI;
 using System.Collections.Generic;
 using System.Collections;
@@ -16,6 +17,7 @@ namespace BattleArena.Loader
     public class GameBootstrapper : MonoBehaviour, INetworkRunnerCallbacks
     {
         public ObjectPool ObjectPool;
+        public ParticleObjectPool ShootEffects;
         public NetworkRunner RunnerPref;
         public Transform[] SpawnPoints;
         [HideInInspector]

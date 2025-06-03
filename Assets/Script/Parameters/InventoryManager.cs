@@ -2,6 +2,7 @@ using BattleArena.InputSynchronize;
 using BattleArena.Loader;
 using BattleArena.Movement;
 using BattleArena.Parameters;
+using BattleArena.UI;
 using Fusion;
 using System;
 using System.Collections;
@@ -80,10 +81,19 @@ namespace BattleArena.Inventory
                 Count = 1,
                 IsSingleUse = true
             });
+            Rpc_UpdateInventoryUI(_inventory.Items[0].Name.ToString(), _inventory.Items[1].Name.ToString(), _inventory.Items[1].Count);
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+        public void Rpc_UpdateInventoryUI(string weaponName, string itemName, int itemCount)
+        {
+            if (!HasInputAuthority) return;
+
+            UIManager.Instance.UpdateInventory(weaponName, itemName, itemCount);
         }
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        public void RpcSetShieldColor(bool active)
+        public void Rpc_SetShieldColor(bool active)
         {
            _playerHealth.FillImage.color = active ? Color.cyan : (Object.HasInputAuthority ? _ownColor : _enemyColor);
         }
@@ -102,7 +112,7 @@ namespace BattleArena.Inventory
                 if (_shieldTimer <= 0)
                 {
                     _isShieldActive = false;
-                    RpcSetShieldColor(false);
+                    Rpc_SetShieldColor(false);
                    _playerHealth.CurrentHealth -= _playerHealth.ItemSettings.ShieldHealth;
                 }
             }
@@ -121,6 +131,7 @@ namespace BattleArena.Inventory
                     {
                         _playerHealth.Heal(_playerHealth.ItemSettings.HealthRestore);
                         _inventory.Items[1].Count = 0;
+                        Rpc_UpdateInventoryUI(_inventory.Items[0].Name.ToString(), _inventory.Items[1].Name.ToString(), _inventory.Items[1].Count);
                     }
                     break;
 
@@ -130,8 +141,9 @@ namespace BattleArena.Inventory
                         _playerHealth.CurrentHealth += _playerHealth.ItemSettings.ShieldHealth;
                         _shieldTimer = 3f;
                         _isShieldActive = true;
-                        RpcSetShieldColor(true);
+                        Rpc_SetShieldColor(true);
                         _inventory.Items[1].Count = 0;
+                        Rpc_UpdateInventoryUI(_inventory.Items[0].Name.ToString(), _inventory.Items[1].Name.ToString(), _inventory.Items[1].Count);
                     }
                     break;
 

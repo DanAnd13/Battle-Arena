@@ -14,10 +14,8 @@ namespace BattleArena.InputSynchronize
         public void Update()
         {
             Vector2 move = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
-            Vector2 mouse = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
 
             NetworkInputData.Movement = move;
-            NetworkInputData.MouseDelta = mouse;
         }
 
         public void OnInput(NetworkRunner runner, NetworkInput input)
@@ -35,6 +33,7 @@ namespace BattleArena.InputSynchronize
 
             if (Input.GetKey(KeyCode.D))
                 data.Movement += Vector3.right;
+
 
             data.buttons.Set(NetworkInputData.MOUSEBUTTON0, Input.GetMouseButton(0));
             data.buttons.Set(NetworkInputData.USEITEM, Input.GetKeyDown(KeyCode.F));

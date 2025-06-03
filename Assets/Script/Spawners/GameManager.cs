@@ -1,4 +1,5 @@
-﻿using BattleArena.Loader;
+﻿using BattleArena.Inventory;
+using BattleArena.Loader;
 using BattleArena.Parameters;
 using BattleArena.UI;
 using Fusion;
@@ -39,8 +40,6 @@ namespace BattleArena.Loader
                     Rpc_StartMatchUI(false);
                     GetPlayersPoints();
                     GetWinner();
-
-
                 }
             }
             Rpc_UpdateTimerUI(RemainingTime);
@@ -71,6 +70,8 @@ namespace BattleArena.Loader
         public void Rpc_StartMatchUI(bool value)
         {
             UIManager.Instance.TimerTMP.gameObject.SetActive(value);
+            UIManager.Instance.WeaponTMP.gameObject.SetActive(value);
+            UIManager.Instance.ItemTMP.gameObject.SetActive(value);
             UIManager.Instance.ConnectedPlayerList.gameObject.SetActive(value);
         }
 
