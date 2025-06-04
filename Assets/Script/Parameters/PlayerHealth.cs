@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using BattleArena.Loader;
 using System.Collections;
+using UnityEngine.Timeline;
 
 namespace BattleArena.Parameters
 {
@@ -19,43 +20,64 @@ namespace BattleArena.Parameters
         [Networked] public bool IsPlayerDead { get; set; }
         [Networked] public int DeathCount { get; set; }
         [Networked] public int KillCount { get; set; }
-
+        [HideInInspector]
+        public float MaxHealth;
         public Image FillImage;
         public TextMeshProUGUI PlayerNameTMP;
-        public ItemScriptableObject ItemSettings;
 
         private PlayerMovement _playerMovement;
         private PlayerScriptableObject _playerSettings;
         private Color _ownColor = Color.yellow;
         private Color _enemyColor = Color.red;
-        private float _maxHealth;
-
-        private void Awake()
-        {
-            _playerMovement = GetComponent<PlayerMovement>();
-            _playerSettings = _playerMovement.PlayerSettings;
-        }
+        
 
         private void Update()
         {
-            float normalizedHealth = CurrentHealth / _maxHealth;
+            float normalizedHealth = CurrentHealth / MaxHealth;
             FillImage.fillAmount = Mathf.Clamp01(normalizedHealth);
         }
 
         public override void Spawned()
         {
-            _maxHealth = _playerSettings != null ? _playerSettings.MaxHealth : 100;
+            _playerMovement = GetComponent<PlayerMovement>();
+            _playerSettings = _playerMovement.PlayerSettings;
+
+            MaxHealth = _playerSettings != null ? _playerSettings.MaxHealth : 100;
             IsPlayerDead = false;
             DeathCount = 0;
             KillCount = 0;
             if (HasStateAuthority)
             {
-                CurrentHealth = _maxHealth;
+                CurrentHealth = MaxHealth;
                 PlayerNickname = "Player" + Object.InputAuthority.PlayerId;
             }
 
             FillImage.color = Object.HasInputAuthority ? _ownColor : _enemyColor;
             PlayerNameTMP.text = PlayerNickname;
+        }
+        
+        public void TakeDamage(float amount)
+        {
+            if (HasStateAuthority)
+            {
+                CurrentHealth = Mathf.Max(0, CurrentHealth - amount);
+            }
+        }
+        
+        public void Heal(float amount)
+        {
+            if (HasStateAuthority)
+            {
+                CurrentHealth = Mathf.Min(MaxHealth, CurrentHealth + amount);
+            }
+        }
+
+        public void PlayerDeath()
+        {
+            IsPlayerDead = true;
+            DeathCount++;
+            Rpc_SetAliveState(false);
+            GameBootstrapper.Instance.RespawnPlayer(this);
         }
 
         [Rpc(RpcSources.All, RpcTargets.All)]
@@ -79,30 +101,6 @@ namespace BattleArena.Parameters
                 controller.enabled = isAlive;
             transform.position = Vector3.down * 100f;
             _playerMovement.enabled = isAlive;
-        }
-
-        public void TakeDamage(float amount)
-        {
-            if (HasStateAuthority)
-            {
-                CurrentHealth = Mathf.Max(0, CurrentHealth - amount);
-            }
-        }
-        
-        public void Heal(float amount)
-        {
-            if (HasStateAuthority)
-            {
-                CurrentHealth = Mathf.Min(_maxHealth, CurrentHealth + amount);
-            }
-        }
-
-        public void PlayerDeath()
-        {
-            IsPlayerDead = true;
-            DeathCount++;
-            GameBootstrapper.Instance.RespawnPlayer(this);
-            Rpc_SetAliveState(false);
         }
 
         public void AddKill()

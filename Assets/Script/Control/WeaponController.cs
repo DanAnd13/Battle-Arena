@@ -11,13 +11,10 @@ namespace BattleArena.Movement
     {
         public WeaponScriptableObject WeaponSettings;
         public Transform Barrel;
-        public BulletController BulletPref;
-
         [Networked] private TickTimer _fireCooldown { get; set; }
         [Networked] private NetworkObject _playerObject { get; set; }
 
         private ObjectPool _pool;
-        private ParticleObjectPool _shootParticle;
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         public void RPC_SetPlayer(NetworkObject playerObj)
@@ -34,11 +31,6 @@ namespace BattleArena.Movement
         private void RPC_PlayParticle()
         {
             PlayParticle();
-        }
-
-        public override void Spawned()
-        {
-            _shootParticle = GameBootstrapper.Instance.ShootEffects;
         }
 
         public void Init(NetworkObject playerObj, ObjectPool pool)
@@ -73,7 +65,7 @@ namespace BattleArena.Movement
 
         private void PlayParticle()
         {
-            ParticleSystem shootingParticle = _shootParticle.GetPooledObject();
+            ParticleSystem shootingParticle = GameBootstrapper.Instance.ShootEffects.GetPooledObject();
             shootingParticle.transform.position = Barrel.position;
             shootingParticle.transform.rotation = Quaternion.LookRotation(Barrel.forward);
             shootingParticle.Play();

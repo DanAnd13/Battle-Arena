@@ -19,11 +19,10 @@ namespace BattleArena.Inventory
         public Button SaveInventoryButton;
         public TextMeshProUGUI WeaponDropdawnTMP;
         public TextMeshProUGUI ItemDropdawnTMP;
-
+        public ItemScriptableObject ItemSettings;
 
         private NetworkedInventory _inventory;
         private PlayerHealth _playerHealth;
-        private PlayerScriptableObject _playerSettings;
         private bool _isShieldActive = false;
         private float _shieldTimer = 0f;
         private Color _ownColor = Color.yellow;
@@ -33,8 +32,6 @@ namespace BattleArena.Inventory
         {
             _inventory = GetComponent<NetworkedInventory>();
             _inventory.Initialize(2);
-
-            _playerSettings = GetComponent<PlayerMovement>().PlayerSettings;
             _playerHealth = GetComponent<PlayerHealth>();
 
             if (HasInputAuthority)
@@ -52,7 +49,10 @@ namespace BattleArena.Inventory
             }
         }
 
-        public void ShowUI(bool value) => SelectionWindow.SetActive(value);
+        public void ShowUI(bool value)
+        {
+            SelectionWindow.SetActive(value);
+        }
 
         public void SelectItem()
         {
@@ -92,12 +92,6 @@ namespace BattleArena.Inventory
             UIManager.Instance.UpdateInventory(weaponName, itemName, itemCount);
         }
 
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        public void Rpc_SetShieldColor(bool active)
-        {
-           _playerHealth.FillImage.color = active ? Color.cyan : (Object.HasInputAuthority ? _ownColor : _enemyColor);
-        }
-
         public void HandleItemInput(NetworkInputData data)
         {
             if (!HasStateAuthority || _inventory == null) return;
@@ -113,7 +107,7 @@ namespace BattleArena.Inventory
                 {
                     _isShieldActive = false;
                     Rpc_SetShieldColor(false);
-                   _playerHealth.CurrentHealth -= _playerHealth.ItemSettings.ShieldHealth;
+                   _playerHealth.CurrentHealth -= ItemSettings.ShieldHealth;
                 }
             }
         }
@@ -127,9 +121,9 @@ namespace BattleArena.Inventory
             switch (activeItem.Name)
             {
                 case InventoryItem.NamesOfItems.Medkit:
-                    if (_playerHealth.CurrentHealth < _playerSettings.MaxHealth)
+                    if (_playerHealth.CurrentHealth < _playerHealth.MaxHealth)
                     {
-                        _playerHealth.Heal(_playerHealth.ItemSettings.HealthRestore);
+                        _playerHealth.Heal(ItemSettings.HealthRestore);
                         _inventory.Items[1].Count = 0;
                         Rpc_UpdateInventoryUI(_inventory.Items[0].Name.ToString(), _inventory.Items[1].Name.ToString(), _inventory.Items[1].Count);
                     }
@@ -138,8 +132,8 @@ namespace BattleArena.Inventory
                 case InventoryItem.NamesOfItems.Shield:
                     if (!_isShieldActive)
                     {
-                        _playerHealth.CurrentHealth += _playerHealth.ItemSettings.ShieldHealth;
-                        _shieldTimer = 3f;
+                        _playerHealth.CurrentHealth += ItemSettings.ShieldHealth;
+                        _shieldTimer = ItemSettings.ShieldTimeDuration;
                         _isShieldActive = true;
                         Rpc_SetShieldColor(true);
                         _inventory.Items[1].Count = 0;
@@ -151,6 +145,12 @@ namespace BattleArena.Inventory
                     Debug.Log("No usable item");
                     break;
             }
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        public void Rpc_SetShieldColor(bool active)
+        {
+            _playerHealth.FillImage.color = active ? Color.cyan : (Object.HasInputAuthority ? _ownColor : _enemyColor);
         }
 
         public void ResetItemAmount()

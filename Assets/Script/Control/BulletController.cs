@@ -1,6 +1,8 @@
 ﻿using Fusion;
 using UnityEngine;
 using BattleArena.Parameters;
+using BattleArena.Loader;
+using System.Threading;
 
 namespace BattleArena.Movement
 {
@@ -24,27 +26,29 @@ namespace BattleArena.Movement
             if (health != null)
             {
                 RPC_ApplyDamage(health, _damage);
-                //ReturnToPool();
             }
+            RPC_PlayParticle(other.transform.position, other.transform.forward);
+            Rpc_PlaySoundEffects(health);
             ReturnToPool();
         }
 
        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         private void RPC_ApplyDamage(PlayerHealth health, float damage)
         {
-            if (health != null)
+            health.TakeDamage(damage);
+            if (!health.IsPlayerDead && health.CurrentHealth <= 0)
             {
-                health.TakeDamage(damage);
-                if (!health.IsPlayerDead && health.CurrentHealth <= 0)
-                {
-                    health.PlayerDeath();
-                    Shooter.AddKill();
-                }
+                health.PlayerDeath();
+                Shooter.AddKill();
             }
-            else
-            {
-                Debug.LogWarning("PlayerHealth not found on player object!");
-            }
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void Rpc_PlaySoundEffects(PlayerHealth player)
+        {
+            var audio = player.GetComponent<AudioSource>();
+            audio.clip = GameBootstrapper.Instance.HitSoundEffect;
+            audio.Play();
         }
 
         public void Init(Vector3 direction, float speed, float damage, float lifeTime, ObjectPool pool)
@@ -85,6 +89,20 @@ namespace BattleArena.Movement
             {
                 Debug.LogWarning("Object pool not assigned!");
             }
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_PlayParticle(Vector3 targetPos, Vector3 targetRotation)
+        {
+            PlayParticle(targetPos, targetRotation);
+        }
+
+        private void PlayParticle(Vector3 target, Vector3 targetRotation)
+        {
+            ParticleSystem shootingParticle = GameBootstrapper.Instance.HitEffects.GetPooledObject();
+            shootingParticle.transform.position = target;
+            shootingParticle.transform.rotation = Quaternion.LookRotation(targetRotation);
+            shootingParticle.Play();
         }
     }
 }

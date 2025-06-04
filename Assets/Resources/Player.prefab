@@ -454,8 +454,6 @@ MonoBehaviour:
       m_Image: {fileID: 0}
     - m_Text: Granade
       m_Image: {fileID: 0}
-    - m_Text: Shield
-      m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -2397,6 +2395,7 @@ GameObject:
   - component: {fileID: 7592256479825778388}
   - component: {fileID: 122234552400966101}
   - component: {fileID: 186330571595429024}
+  - component: {fileID: 5640421855558376388}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -2501,7 +2500,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99bb4baa6a0b3714b917ea0333efdffe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _PlayerSpawnPosition: {x: 0, y: 0, z: 0}
   PlayerSettings: {fileID: 11400000, guid: 5bdb0ecbca01e074386afd0f1076b30f, type: 2}
 --- !u!114 &1191757477422304791
 MonoBehaviour:
@@ -2520,9 +2518,9 @@ MonoBehaviour:
   _IsPlayerDead: 0
   _DeathCount: 0
   _KillCount: 0
+  MaxHealth: 0
   FillImage: {fileID: 4971567717280966604}
   PlayerNameTMP: {fileID: 2050467763724890499}
-  ItemSettings: {fileID: 11400000, guid: de73ac9fb239d81429fb3239e0e3e173, type: 2}
 --- !u!114 &7592256479825778388
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2564,6 +2562,103 @@ MonoBehaviour:
   SaveInventoryButton: {fileID: 5917548656804376359}
   WeaponDropdawnTMP: {fileID: 5455476750503198665}
   ItemDropdawnTMP: {fileID: 9116226952772539778}
+  ItemSettings: {fileID: 0}
+--- !u!82 &5640421855558376388
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5958680426415492518}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 0.4
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &6185558158207054051
 GameObject:
   m_ObjectHideFlags: 0
@@ -2576,7 +2671,7 @@ GameObject:
   - component: {fileID: 8313474864663361463}
   - component: {fileID: 773504461158198849}
   - component: {fileID: 539894550004793388}
-  - component: {fileID: 2896586822938765671}
+  - component: {fileID: 2028329018070289057}
   m_Layer: 5
   m_Name: HealthCanvas
   m_TagString: Untagged
@@ -2668,7 +2763,7 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
---- !u!114 &2896586822938765671
+--- !u!114 &2028329018070289057
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

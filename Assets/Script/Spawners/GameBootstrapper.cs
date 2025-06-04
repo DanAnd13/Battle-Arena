@@ -18,6 +18,8 @@ namespace BattleArena.Loader
     {
         public ObjectPool ObjectPool;
         public ParticleObjectPool ShootEffects;
+        public ParticleObjectPool HitEffects;
+        public AudioClip HitSoundEffect;
         public NetworkRunner RunnerPref;
         public Transform[] SpawnPoints;
         [HideInInspector]
@@ -71,10 +73,7 @@ namespace BattleArena.Loader
         {
             for (int i = 0; i < _preloadCount; i++)
             {
-                NetworkObject bullet = _runner.Spawn(_bulletPref, Vector3.zero, Quaternion.identity, inputAuthority: null, onBeforeSpawned: (runner, obj) =>
-                {
-                    obj.transform.position = Vector3.down * 100f; // тимчасово сховати
-                });
+                NetworkObject bullet = _runner.Spawn(_bulletPref, Vector3.zero, Quaternion.identity, inputAuthority: null);
                 ObjectPool.AddObject(bullet);
             }
         }
@@ -106,7 +105,7 @@ namespace BattleArena.Loader
             Vector3 spawnPoint = GetRandomSpawnpoint();
 
             playerHealth.IsPlayerDead = false;
-            playerHealth.CurrentHealth = 100;
+            playerHealth.CurrentHealth = playerHealth.MaxHealth;
             playerHealth.Rpc_SetAliveState(true);
             var controller = playerHealth.GetComponent<NetworkCharacterController>();
             controller.Teleport(spawnPoint);
@@ -115,12 +114,15 @@ namespace BattleArena.Loader
 
         public void RespawnAllPlayers()
         {
-            foreach (var key in _gameManager.SpawnedCharacters)
+            try
             {
-                var player = key.Key;
-                DespawnPlayer(_runner, player);
-                SpawnPlayer(_runner, player);
+                foreach (var key in _gameManager.SpawnedCharacters)
+                {
+                    var player = key.Key;
+                    SpawnPlayer(_runner, player);
+                }
             }
+            catch { }
         }
 
         public void SpawnPlayer(NetworkRunner runner, PlayerRef player)
@@ -133,17 +135,22 @@ namespace BattleArena.Loader
 
                 _gameManager.WriteNewPlayer(player, playerInstance);
                 playerInstance.GetComponent<NetworkedInventory>().ClearInventory();
+                playerInstance.GetComponent<PlayerMovement>().enabled = false;
             }
         }
 
         public void DespawnAllPlayers()
         {
-            foreach (var key in _gameManager.SpawnedCharacters)
+            try
             {
-                var player = key.Key;
-                DespawnPlayer(_runner, player);
-               _gameManager.SpawnedCharacters.Set(player, null);
+                foreach (var key in _gameManager.SpawnedCharacters)
+                {
+                    var player = key.Key;
+                    DespawnPlayer(_runner, player);
+                    _gameManager.SpawnedCharacters.Set(player, null);
+                }
             }
+            catch { }
         }
         
         public void DespawnPlayer(NetworkRunner runner, PlayerRef player) 
@@ -184,12 +191,14 @@ namespace BattleArena.Loader
                 {
                     weaponInstance = runner.Spawn(_powerWeaponPref, Vector3.zero, Quaternion.identity, player);
                 }
-
-                weaponInstance.GetComponent<WeaponController>().RPC_SetPlayer(playerInstance);
-                weaponInstance.GetComponent<WeaponController>().Init(playerInstance, ObjectPool);
+                var playerWeapon = weaponInstance.GetComponent<WeaponController>();
+                playerWeapon.RPC_SetPlayer(playerInstance);
+                playerWeapon.Init(playerInstance, ObjectPool);
                 var dispatcher = playerInstance.GetComponent<PlayerInputDispatcher>();
-                dispatcher.Init(playerInstance.GetComponent<InventoryManager>(), weaponInstance.GetComponent<WeaponController>());
-                playerInstance.GetComponent<InventoryManager>().ResetItemAmount();
+                var palyerInventory = playerInstance.GetComponent<InventoryManager>();
+                dispatcher.Init(palyerInventory, playerWeapon);
+                palyerInventory.ResetItemAmount();
+                playerInstance.GetComponent<PlayerMovement>().enabled = true;
             }
         }
 

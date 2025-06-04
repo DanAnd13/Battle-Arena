@@ -8,17 +8,14 @@ namespace BattleArena.Movement
 {
     public class PlayerMovement : NetworkBehaviour
     {
-        [Networked]
-        public Vector3 PlayerSpawnPosition { get; set; }
-
         public PlayerScriptableObject PlayerSettings;
 
         private NetworkCharacterController _cc;
 
-        private void Awake()
+        public override void Spawned()
         {
             _cc = GetComponent<NetworkCharacterController>();
-        }
+        } 
 
         public override void FixedUpdateNetwork()
         {

@@ -16,7 +16,6 @@ namespace BattleArena.Loader
         [HideInInspector]
         public float matchDuration;
 
-        private Dictionary<PlayerRef, PlayerHealth> players = new();
         private bool _matchEnded = false;
         private bool _matchStarted = false;
 
@@ -38,11 +37,10 @@ namespace BattleArena.Loader
                     _matchEnded = true;
                     _matchStarted = false;
                     Rpc_StartMatchUI(false);
-                    GetPlayersPoints();
                     GetWinner();
                 }
+                Rpc_UpdateTimerUI(RemainingTime);
             }
-            Rpc_UpdateTimerUI(RemainingTime);
         }
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
@@ -57,7 +55,6 @@ namespace BattleArena.Loader
 
             if (HasStateAuthority)
             {
-                Debug.Log("Match Started!");
                 _matchStarted = true;
                 _matchEnded = false;
                 RemainingTime = matchDuration;
@@ -95,36 +92,25 @@ namespace BattleArena.Loader
             }
         }
 
-        private void GetPlayersPoints()
-        {
-            players.Clear();
-            foreach (var player in SpawnedCharacters)
-            {
-                PlayerHealth health = player.Value.GetComponent<PlayerHealth>();
-                if (health != null)
-                {
-                    players[player.Key] = health;
-                }
-            }
-        }
-
         private void GetWinner()
         {
-            PlayerHealth winner = null;
+            string winnerName = "";
+            int winnerPoints = 0;
             int maxKills = -1;
 
-            foreach (var player in players.Values)
+            foreach (var player in UIManager.Instance.ConnectedPlayers)
             {
-                if (player.KillCount > maxKills)
+                if (player.Value > maxKills)
                 {
-                    maxKills = player.KillCount;
-                    winner = player;
+                    maxKills = player.Value;
+                    winnerName = player.Key;
+                    winnerPoints = player.Value;
                 }
             }
 
-            if (winner != null)
+            if (winnerName != null)
             {
-                Rpc_ShowResults(winner.PlayerNickname, winner.KillCount);
+                Rpc_ShowResults(winnerName, winnerPoints);
             }
         }
 

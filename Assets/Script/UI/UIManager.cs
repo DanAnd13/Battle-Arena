@@ -21,7 +21,7 @@ namespace BattleArena.UI
         public TextMeshProUGUI WeaponTMP;
         public static UIManager Instance { get; private set; }
 
-        private Dictionary<string, int> _connectedPlayers = new();
+        public Dictionary<string, int> ConnectedPlayers = new();
 
         private void Awake()
         {
@@ -61,27 +61,25 @@ namespace BattleArena.UI
 
         public void GetListOfConnectedPlayers(NetworkDictionary<PlayerRef, NetworkObject> spawnedCharacters)
         {
-            _connectedPlayers.Clear();
+            ConnectedPlayers.Clear();
 
             foreach (var playerEntry in spawnedCharacters)
             {
                 var networkObj = playerEntry.Value;
                 var playerHealth = networkObj.GetComponent<PlayerHealth>();
 
-                if (!_connectedPlayers.ContainsKey(playerHealth.PlayerNickname))
+                if (!ConnectedPlayers.ContainsKey(playerHealth.PlayerNickname))
                 {
-                    _connectedPlayers[playerHealth.PlayerNickname] = playerHealth.KillCount;
+                    ConnectedPlayers[playerHealth.PlayerNickname] = playerHealth.KillCount;
                 }
             }
-
             UpdatePlayerListDisplay();
         }
         public void UpdateSinglePlayerScore(string nickname, int kills)
         {
-            if (_connectedPlayers.ContainsKey(nickname))
+            if (ConnectedPlayers.ContainsKey(nickname))
             {
-                _connectedPlayers[nickname] = kills;
-                Debug.Log(_connectedPlayers[nickname] + " " + nickname);
+                ConnectedPlayers[nickname] = kills;
                 UpdatePlayerListDisplay();
             }
         }
@@ -94,10 +92,10 @@ namespace BattleArena.UI
 
         public void RemovePlayerFromList(NetworkObject player)
         {
-            string playerName = player.GetComponent<PlayerHealth>().PlayerNickname;
-            if (_connectedPlayers.ContainsKey(playerName))
+            var playerInfo = player.GetComponent<PlayerHealth>();
+            if (ConnectedPlayers.ContainsKey(playerInfo.PlayerNickname))
             {
-                _connectedPlayers.Remove(playerName);
+                ConnectedPlayers.Remove(playerInfo.PlayerNickname);
                 UpdatePlayerListDisplay();
             }
         }
@@ -106,7 +104,7 @@ namespace BattleArena.UI
         {
             ConnectedPlayerTMP.text = string.Empty;
 
-            foreach (var entry in _connectedPlayers)
+            foreach (var entry in ConnectedPlayers)
             {
                 ConnectedPlayerTMP.text += $"{entry.Key}: {entry.Value}\n";
             }

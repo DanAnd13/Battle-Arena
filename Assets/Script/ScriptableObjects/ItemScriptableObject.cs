@@ -11,9 +11,6 @@ namespace BattleArena.Parameters
 
         public float ShieldHealth = 25;
 
-        public float GranadeDamage = 25;
-        public float GranadeSpeed = 10;
-        public float GranadeRadius = 15;
-        public float GranadeDelay = 2;
+        public float ShieldTimeDuration = 5;
     }
 }

@@ -13,7 +13,6 @@ namespace BattleArena.Inventory
         {
             FastWeapon,
             PowerWeapon,
-            Granade,
             Medkit,
             Shield
         }

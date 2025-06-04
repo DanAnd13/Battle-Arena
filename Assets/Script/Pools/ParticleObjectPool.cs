@@ -4,13 +4,7 @@ using UnityEngine;
 
 public class ParticleObjectPool : MonoBehaviour
 {
-    private ParticleObjectPool _sharedInstance;
     private List<ParticleSystem> _pooledObjects;
-
-    void Awake()
-    {
-        _sharedInstance = this;
-    }
 
     private void Start()
     {
